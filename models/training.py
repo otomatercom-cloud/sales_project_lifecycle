@@ -151,6 +151,8 @@ class OtmTraining(models.Model):
                 t.with_context(otm_transition=True).write({'cancel_reason': reason})
             if action in ('complete', 'cancel'):
                 t.project_id.sudo()._otm_check_training_done()
+                if t.project_id.sudo().otm_training_done:
+                    t.project_id.sudo()._otm_sync_stages('training')
 
     def _otm_require_reason(self, reason):
         if not (reason or '').strip():

@@ -280,6 +280,47 @@ class ProjectProject(models.Model):
             out.append(_("The customer verification of the deployment is not completed."))
         return out
 
+    # ------------------------------------------------------------------
+    # Stage checklist follows the real work (QC, deployment, training, payments, review ...)
+    # ------------------------------------------------------------------
+    _OTM_MILESTONE_STAGE = {
+        'development': r'\bdevelopment\b', 'testing': r'internal test', 'qc': r'^qc$|quality',
+        'deployment': r'^deployment$', 'verification': r'verification', 'training': r'^training$',
+        'pay30': r'30\s*%', 'delivery': r'final delivery', 'pay20': r'20\s*%',
+        'review': r'customer review', 'closed': r'^completed$|^closure$',
+    }
+
+    def _otm_sync_stages(self, milestone):
+        """Mark the stage that matches a real milestone (and every earlier stage) as done, with audit entries.
+
+        The manual Start / Complete buttons still exist, but nobody has to press them for work that Odoo
+        already knows is finished.
+        """
+        import re
+        pattern = self._OTM_MILESTONE_STAGE.get(milestone)
+        if not pattern:
+            return
+        Log = self.env['otm.transition.log'].sudo()
+        now = fields.Datetime.now()
+        for project in self.sudo():
+            lines = project.otm_stage_ids.sorted(lambda l: (l.sequence, l.id))
+            targets = lines.filtered(lambda l: re.search(pattern, (l.name or '').strip().lower()))
+            if not targets:
+                continue
+            last_seq = max(targets.mapped('sequence'))
+            for line in lines.filtered(lambda l: l.sequence <= last_seq and l.state in ('pending', 'in_progress')):
+                old = line.state
+                vals = {'state': 'done', 'actual_end': now}
+                if not line.actual_start:
+                    vals['actual_start'] = now
+                line.with_context(otm_transition=True).write(vals)
+                Log.create({
+                    'res_model': line._name, 'res_id': line.id, 'record_name': line.display_name,
+                    'action': 'auto_complete', 'from_state': line._otm_state_label(old, 'state'),
+                    'to_state': line._otm_state_label('done', 'state'), 'user_id': self.env.user.id,
+                    'reason': _("Completed automatically: %s", milestone.replace('_', ' ')),
+                    'sales_team_id': project.otm_sales_team_id.id, 'owner_id': project.otm_sales_head_id.id})
+
     def _otm_closure_blockers(self):
         self.ensure_one()
         p, out = self.sudo(), []
@@ -339,9 +380,11 @@ class ProjectProject(models.Model):
                 if not project.sudo().otm_training_ids.filtered(lambda t: t.required and t.status != 'cancelled'):
                     project.sudo().otm_deal_id._otm_payment_event('after_training')
                 project.sudo().otm_deal_id._otm_payment_event('final_delivery')
+                project._otm_sync_stages('delivery')
             elif action == 'close':
                 project.with_context(otm_transition=True).write({
                     'otm_closed_date': fields.Datetime.now(), 'otm_closed_by_id': self.env.user.id})
+                project._otm_sync_stages('closed')
                 lead = project.sudo().otm_lead_id
                 if lead.stage == 'project':
                     lead._otm_do_transition('system_won')
@@ -410,6 +453,7 @@ class ProjectProject(models.Model):
             'project_id': p.id, 'round_number': len(p.otm_qc_ids) + 1,
             'submitted_by_id': self.env.user.id, 'submitted_date': fields.Datetime.now()})
         p.otm_issue_ids.filtered(lambda i: i.status == 'fixed')._otm_do_transition('system_retest')
+        p._otm_sync_stages('testing')
         self.env['otm.transition.log'].sudo().create({
             'res_model': 'project.project', 'res_id': p.id, 'record_name': p.display_name,
             'action': 'submit_qc', 'from_state': _('Development'), 'to_state': qc.name,

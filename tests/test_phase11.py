@@ -403,6 +403,11 @@ class TestAcceptance(Phase11Base):
         self.assertEqual(out['review'].status, 'submitted')
         self.assertEqual(project.otm_state, 'closed')
         self.assertEqual(project.otm_closed_by_id, self.ph)
+        # the stage checklist follows the real work: nothing is left pending after closure
+        stages = project.sudo().otm_stage_ids
+        self.assertTrue(stages and set(stages.mapped('state')) <= {'done', 'skipped'}, stages.mapped('state'))
+        self.assertTrue(seen('otm.project.stage.line', 'auto_complete'))
+        self.assertEqual(project.sudo().otm_progress, 100)
         self.assertEqual(self.sale_lead.stage, 'won')
         self.assertEqual(deal.sudo().commission_ids.mapped('commission_amount'), [15000.0])
         self.assertEqual(deal.sudo().commission_ids.status, 'earned')

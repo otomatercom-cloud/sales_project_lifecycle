@@ -140,8 +140,11 @@ class OtmDealPayment(models.Model):
                     deal._otm_commission_event(event)
                 if pay.trigger == 'advance':
                     deal._otm_after_advance_received()
+                if pay.trigger == 'after_training':
+                    deal.project_id._otm_sync_stages('pay30')
                 if pay.trigger == 'final_delivery':
                     deal.project_id._otm_request_review()
+                    deal.project_id._otm_sync_stages('pay20')
 
     def _otm_notify_finance(self):
         finance = self.env['res.users'].sudo().search([

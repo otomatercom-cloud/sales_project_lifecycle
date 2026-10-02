@@ -100,6 +100,7 @@ class OtmCustomerReview(models.Model):
         for r in self:
             r.with_context(otm_transition=True).write({
                 'submitted_date': fields.Datetime.now(), 'submitted_by_id': self.env.user.id})
+            r.project_id.sudo()._otm_sync_stages('review')
 
     def action_submit(self):
         return self._otm_do_transition('submit')

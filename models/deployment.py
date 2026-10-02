@@ -151,6 +151,9 @@ class OtmDeployment(models.Model):
                 w.write({'approved_by_id': self.env.user.id})
             elif action == 'deploy':
                 w.write({'deployment_date': now, 'deployed_by_id': self.env.user.id})
+                dep.project_id.sudo()._otm_sync_stages('deployment')
+            elif action == 'complete':
+                dep.project_id.sudo()._otm_sync_stages('verification')
             elif action == 'report_issue':
                 p = dep.project_id.sudo()
                 self.env['otm.qc.issue'].sudo().create({

@@ -141,6 +141,13 @@ class ProjectTask(models.Model):
         self._otm_require_reason(reason)
         return self._otm_do_transition('return', reason=reason)
 
+    def _otm_after_transition(self, action, old_state, reason):
+        if action == 'complete':
+            for project in self.mapped('project_id').sudo():
+                tasks = project.task_ids.filtered(lambda t: t.otm_lifecycle)
+                if tasks and all(t.otm_dev_status == 'completed' for t in tasks):
+                    project._otm_sync_stages('development')
+
     def action_otm_complete(self):
         return self._otm_do_transition('complete')
 

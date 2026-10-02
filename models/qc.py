@@ -105,6 +105,8 @@ class OtmQc(models.Model):
                 w.write({'started_date': now, 'tester_id': self.env.user.id})
             else:
                 w.write({'finished_date': now})
+            if action == 'pass':
+                qc.project_id.sudo()._otm_sync_stages('qc')
 
     def action_start(self):
         return self._otm_do_transition('start')
