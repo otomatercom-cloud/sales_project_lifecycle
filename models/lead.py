@@ -333,11 +333,37 @@ class OtmLead(models.Model):
             'domain': [('res_model', '=', self._name), ('res_id', '=', self.id)],
         }
 
+    @api.model
+    def _otm_find_or_create_partner(self, vals):
+        """Reuse a contact with the same email or name, otherwise create it. Runs as superuser because sales
+        users do not hold Odoo's 'Contact Creation' right; callers must have checked the user's sales role."""
+        P = self.env['res.partner'].sudo()
+        esc = lambda t: t.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
+        found = P
+        if vals.get('email'):
+            found = P.search([('email', '=ilike', esc(vals['email'].strip()))], limit=1)
+        if not found:
+            found = P.search([('name', '=ilike', esc(vals['name'].strip()))], limit=1)
+        return found or P.create(vals)
+
+    @api.model
+    def otm_create_customer(self, name):
+        """Used by the web app's 'Create customer' option; returns [id, display_name]."""
+        name = (name or '').strip()
+        if not name:
+            raise UserError(_("Enter the customer name."))
+        if not any(self.env.user.has_group(g) for g in (
+                'sales_project_lifecycle.group_sales_executive', 'sales_project_lifecycle.group_sales_head',
+                'sales_project_lifecycle.group_lifecycle_admin')):
+            raise AccessError(_("Only sales users can create customers here."))
+        partner = self._otm_find_or_create_partner({'name': name})
+        return [partner.id, partner.display_name]
+
     def action_create_customer(self):
         self.ensure_one()
         if self.customer_id:
             raise UserError(_("A customer is already linked to this lead."))
-        partner = self.env['res.partner'].create({
+        partner = self._otm_find_or_create_partner({
             'name': self.company_name or self.name,
             'is_company': bool(self.company_name),
             'email': self.email,

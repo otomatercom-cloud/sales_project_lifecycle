@@ -145,3 +145,40 @@ class TestAutoProject(ProjectFixture):
         # another team's executive cannot log on this lead
         with self.assertRaises(Exception):
             self.lead_a1.with_user(self.exec_b1).action_log_outreach('email', 'x')
+
+
+@tagged('post_install', '-at_install', 'otm_comfort')
+class TestCustomerCreate(LifecycleCommon):
+    """Sales users create customers without Odoo's 'Contact Creation' right; duplicates are reused."""
+
+    def test_executive_creates_and_reuses(self):
+        L = self.env['otm.lead'].with_user(self.exec_a1)
+        # the executive cannot create contacts directly ...
+        with self.assertRaises(Exception):
+            self.env['res.partner'].with_user(self.exec_a1).create({'name': 'Direct Co'})
+        # ... but can through the module method
+        pair = L.otm_create_customer('  Brand New Client  ')
+        self.assertEqual(pair[1], 'Brand New Client')
+        again = L.otm_create_customer('brand new client')
+        self.assertEqual(again[0], pair[0], "same name must reuse the contact")
+        self.assertEqual(self.env['res.partner'].search_count([('name', '=ilike', 'brand new client')]), 1)
+
+    def test_blank_and_non_sales_denied(self):
+        with self.assertRaises(UserError):
+            self.env['otm.lead'].with_user(self.exec_a1).otm_create_customer('   ')
+        plain = self.env['res.users'].with_context(no_reset_password=True).create({
+            'name': 'Plain2', 'login': 'tst_plain13', 'group_ids': [(6, 0, [self.env.ref('base.group_user').id])]})
+        with self.assertRaises(Exception):
+            self.env['otm.lead'].with_user(plain).otm_create_customer('Nope Ltd')
+
+    def test_create_customer_button_for_executive(self):
+        lead = self.lead_a1
+        lead.customer_id = False
+        lead.with_user(self.exec_a1).action_create_customer()
+        self.assertTrue(lead.customer_id)
+        # a second contact with the same email is not created
+        other = self.lead_a2 if hasattr(self, 'lead_a2') else lead
+        before = self.env['res.partner'].search_count([])
+        lead.customer_id = False
+        lead.with_user(self.exec_a1).action_create_customer()
+        self.assertEqual(self.env['res.partner'].search_count([]), before)
