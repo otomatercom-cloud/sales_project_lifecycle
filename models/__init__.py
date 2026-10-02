@@ -4,6 +4,7 @@ from . import res_users
 from . import lead_source
 from . import service
 from . import lead
+from . import message_template
 from . import lead_service_line
 from . import demo
 from . import estimate_line

@@ -101,3 +101,6 @@ access_integration_admin,otm integration admin,model_otm_client_integration,grou
 access_reminder_ph,otm reminder log ph,model_otm_expiry_reminder,group_project_head,1,0,0,0
 access_reminder_head,otm reminder log head,model_otm_expiry_reminder,group_sales_head,1,0,0,0
 access_reminder_admin,otm reminder log admin,model_otm_expiry_reminder,group_lifecycle_admin,1,0,0,0
+access_msgtpl_exec,otm.message.template executive,model_otm_message_template,group_sales_executive,1,0,0,0
+access_msgtpl_head,otm.message.template head,model_otm_message_template,group_sales_head,1,0,0,0
+access_msgtpl_admin,otm.message.template admin,model_otm_message_template,group_lifecycle_admin,1,1,1,1

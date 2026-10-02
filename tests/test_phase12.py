@@ -126,3 +126,22 @@ class TestAutoProject(ProjectFixture):
         self.assertNotIn('amount', Pay.with_user(self.exec_a1).fields_get())
         self.assertNotIn('total_amount', self.env['otm.deal'].with_user(self.exec_a1).fields_get())
         self.assertIn('total_amount', self.env['otm.deal'].with_user(self.head_a).fields_get())
+
+    def test_message_templates_and_outreach_log(self):
+        Tpl = self.env['otm.message.template']
+        self.assertTrue(Tpl.with_user(self.exec_a1).search([]))          # executives can read
+        with self.assertRaises(Exception):
+            Tpl.with_user(self.exec_a1).create({'name': 'x', 'body': 'y'})  # but not edit
+        tpl = Tpl.with_user(self.admin_user).create({'name': 'Hello', 'body': 'Hi {customer}'})
+        self.assertEqual(tpl.channel, 'both')
+        lead = self.lead_a1.with_user(self.exec_a1)
+        n = len(lead.message_ids)
+        lead.action_log_outreach('whatsapp', 'Hi there\nsecond line')
+        self.assertEqual(len(lead.message_ids), n + 1)
+        self.assertIn('Hi there<br>second line', str(lead.message_ids[0].body).replace('<br/>', '<br>'))
+        self.assertNotIn('&lt;br', str(lead.message_ids[0].body))
+        with self.assertRaises(Exception):
+            lead.action_log_outreach('pigeon', 'x')
+        # another team's executive cannot log on this lead
+        with self.assertRaises(Exception):
+            self.lead_a1.with_user(self.exec_b1).action_log_outreach('email', 'x')

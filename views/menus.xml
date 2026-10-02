@@ -64,6 +64,8 @@
               action="action_otm_payment_schedule" sequence="26"/>
     <menuitem id="menu_otm_config_stages" name="Project Stages" parent="menu_otm_config"
               action="action_otm_project_stage" sequence="27"/>
+    <menuitem id="menu_otm_config_msgtpl" name="Message Templates" parent="menu_otm_config"
+              action="action_otm_message_template" sequence="35"/>
     <menuitem id="menu_otm_config_sources" name="Lead Sources" parent="menu_otm_config"
               action="action_otm_lead_source" sequence="30"/>
     <menuitem id="menu_otm_config_history" name="Transition History" parent="menu_otm_config"
