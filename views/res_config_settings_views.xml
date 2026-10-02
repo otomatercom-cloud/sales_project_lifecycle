@@ -30,6 +30,11 @@
                             <field name="otm_lost_description_required"/>
                         </setting>
                     </block>
+                    <block title="Projects" name="otm_projects">
+                        <setting string="Create Project Automatically" help="Create the delivery project as soon as the agreement is completed and the advance is received.">
+                            <field name="otm_auto_create_project"/>
+                        </setting>
+                    </block>
                     <block title="Follow-ups" name="otm_followups">
                         <setting string="Follow-up After (days)" help="Waiting estimates, payments and agreements raise an activity after this many days.">
                             <field name="otm_followup_days"/>

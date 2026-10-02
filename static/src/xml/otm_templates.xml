@@ -141,7 +141,7 @@
                             <div class="o_otm_pairs"><span>Leads</span><b t-esc="state.data.sales.leads"/></div>
                             <div class="o_otm_pairs"><span>Estimates</span><b t-esc="state.data.sales.estimates"/></div>
                             <div class="o_otm_pairs"><span>Deals</span><b t-esc="state.data.sales.deals"/></div>
-                            <div class="o_otm_pairs"><span>Deal value</span><b t-esc="money(state.data.sales.deal_value)"/></div>
+                            <div class="o_otm_pairs" t-if="state.data.sales.deal_value !== null"><span>Deal value</span><b t-esc="money(state.data.sales.deal_value)"/></div>
                             <div class="o_otm_pairs"><span>Team</span><b t-esc="state.data.sales.teams.join(', ') || '-'"/></div>
                             <div class="o_otm_pairs"><span>Sales Head</span><b t-esc="state.data.sales.heads.join(', ') || '-'"/></div>
                             <div class="o_otm_pairs"><span>Executive</span><b t-esc="state.data.sales.executives.join(', ') || '-'"/></div>

@@ -299,9 +299,14 @@ class TestDealCommission(LifecycleCommon):
         self.assertFalse(D.with_user(self.exec_a2).search([('id', '=', deal.id)]))
         self.assertFalse(D.with_user(self.head_b).search([('id', '=', deal.id)]))
         self.assertTrue(D.with_user(self.finance).search([('id', '=', deal.id)]))
-        # executive sees the deal value but not the margin
+        # the executive sees neither the deal value nor the margin: amounts are for Sales Head / Finance / Admin
         d = deal.with_user(self.exec_a1)
-        self.assertEqual(d.total_amount, 35000)
+        with self.assertRaises(AccessError):
+            d.read(['total_amount'])
+        with self.assertRaises(AccessError):
+            d.read(['balance_due'])
+        self.assertEqual(deal.with_user(self.head_a).total_amount, 35000)
+        self.assertEqual(deal.with_user(self.finance).total_amount, 35000)
         with self.assertRaises(AccessError):
             d.read(['additional_total'])
         with self.assertRaises(AccessError):

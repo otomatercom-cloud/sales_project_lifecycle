@@ -6,6 +6,8 @@ from .payment_schedule import TRIGGERS
 FIN = 'sales_project_lifecycle.group_finance'
 FIN_MGR = 'sales_project_lifecycle.group_finance_manager'
 ADMIN = 'sales_project_lifecycle.group_lifecycle_admin'
+# amounts are visible to Sales Heads, Finance and the Administrator (implied) only
+AMOUNT_GROUPS = 'sales_project_lifecycle.group_sales_head,sales_project_lifecycle.group_finance'
 FINANCE_FIELDS = {'payment_reference', 'paid_date', 'payment_method', 'notes', 'proof', 'proof_filename',
                   'message_main_attachment_id'}
 
@@ -50,9 +52,9 @@ class OtmDealPayment(models.Model):
     customer_id = fields.Many2one('res.partner', related='deal_id.customer_id', store=True)
     currency_id = fields.Many2one('res.currency', related='deal_id.currency_id')
     sequence = fields.Integer(default=10, readonly=True)
-    percentage = fields.Float(digits=(16, 2), readonly=True)
+    percentage = fields.Float(digits=(16, 2), readonly=True, groups=AMOUNT_GROUPS)
     trigger = fields.Selection(TRIGGERS, required=True, readonly=True)
-    amount = fields.Monetary(currency_field='currency_id', readonly=True)
+    amount = fields.Monetary(currency_field='currency_id', readonly=True, groups=AMOUNT_GROUPS)
     due_date = fields.Date(readonly=True, tracking=True)
     status = fields.Selection([
         ('pending', 'Not Due Yet'), ('due', 'Due'), ('requested', 'Requested'),

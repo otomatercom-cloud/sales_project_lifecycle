@@ -47,6 +47,11 @@ class OtmDashboard(models.AbstractModel):
         return False
 
     @api.model
+    def _can_see_amounts(self):
+        user = self.env.user
+        return user.has_group(G + 'group_sales_head') or user.has_group(G + 'group_finance')
+
+    @api.model
     def _can_read(self, model):
         try:
             self.env[model].check_access('read')
@@ -175,9 +180,13 @@ class OtmDashboard(models.AbstractModel):
                     out[idx[d]] = value or 0
             return out
 
-        return {'labels': labels, 'currency': self.env.company.currency_id.symbol, 'series': [
+        series = [
             {'key': 'leads', 'name': _("New leads"), 'kind': 'count',
              'values': bucket('otm.lead', 'create_date', [], '__count')},
+        ]
+        if not self._can_see_amounts():  # money series are for Sales Heads, Finance and the Administrator
+            return {'labels': labels, 'currency': self.env.company.currency_id.symbol, 'series': series}
+        return {'labels': labels, 'currency': self.env.company.currency_id.symbol, 'series': series + [
             {'key': 'won', 'name': _("Won value"), 'kind': 'sum',
              'values': bucket('otm.deal', 'locked_date', [('status', '=', 'locked')], 'total_amount:sum')},
             {'key': 'received', 'name': _("Received"), 'kind': 'sum',
@@ -187,7 +196,7 @@ class OtmDashboard(models.AbstractModel):
     @api.model
     def get_targets(self):
         """This month's won value against each visible team's monthly target."""
-        if not self._role() or not self._can_read('otm.sales.team'):
+        if not self._role() or not self._can_see_amounts() or not self._can_read('otm.sales.team'):
             return []
         start = fields.Date.context_today(self).replace(day=1)
         teams = self.env['otm.sales.team'].search([('target_amount', '>', 0)])
@@ -520,7 +529,8 @@ class OtmDashboard(models.AbstractModel):
             deals = self.env['otm.deal'].search([('customer_id', '=', partner.id)]) if self._can_read('otm.deal') else self.env['otm.deal']
             ests = self.env['otm.estimate'].search([('customer_id', '=', partner.id)]) if self._can_read('otm.estimate') else self.env['otm.estimate']
             return {'leads': len(leads), 'estimates': len(ests), 'deals': len(deals),
-                    'deal_value': sum(deals.filtered(lambda d: d.status == 'locked').mapped('total_amount')),
+                    'deal_value': (sum(deals.filtered(lambda d: d.status == 'locked').mapped('total_amount'))
+                                   if self._can_see_amounts() else None),
                     'teams': sorted(set(leads.mapped('sales_team_id.name') + deals.mapped('sales_team_id.name'))),
                     'heads': sorted(set(leads.mapped('sales_head_id.name') + deals.mapped('sales_head_id.name'))),
                     'executives': sorted(set(leads.mapped('salesperson_id.name') + deals.mapped('salesperson_id.name')))}
@@ -534,6 +544,8 @@ class OtmDashboard(models.AbstractModel):
                                'progress': round(p.otm_progress)} for p in ps[:10]]}
 
         def payments(Pay):
+            if not self._can_see_amounts():
+                return {'restricted': True}
             pays = Pay.search([('deal_id.customer_id', '=', partner.id), ('status', '!=', 'cancelled')])
             total = sum(pays.mapped('amount'))
             received = sum(pays.filtered(lambda x: x.status == 'received').mapped('amount'))

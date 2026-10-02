@@ -52,3 +52,8 @@ class ResConfigSettings(models.TransientModel):
     otm_followup_days = fields.Integer(
         string='Follow-up After (days)', default=3, config_parameter='sales_project_lifecycle.followup_days',
         help="Estimates, payments and agreements waiting this long raise a follow-up activity.")
+
+    otm_auto_create_project = fields.Boolean(
+        string='Create Project Automatically', config_parameter='sales_project_lifecycle.auto_create_project',
+        help="When the agreement is completed and the advance is received, the delivery project is "
+             "created automatically instead of waiting for the Sales Head to press 'Create Project'.")

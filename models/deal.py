@@ -45,13 +45,13 @@ class OtmDeal(models.Model):
     commission_ids = fields.One2many('otm.sales.commission', 'deal_id', string='Commissions')
     commission_count = fields.Integer(compute='_compute_commission_count')
     # Snapshot of the approved estimate; frozen while the deal is locked
-    base_total = fields.Monetary(currency_field='currency_id', readonly=True)
+    base_total = fields.Monetary(currency_field='currency_id', readonly=True, groups=FIN_HEAD)
     additional_total = fields.Monetary(currency_field='currency_id', readonly=True, groups=FIN_HEAD)
-    selling_total = fields.Monetary(currency_field='currency_id', readonly=True)
-    customization_amount = fields.Monetary(currency_field='currency_id', readonly=True)
-    discount_amount = fields.Monetary(currency_field='currency_id', readonly=True)
-    tax_amount = fields.Monetary(currency_field='currency_id', readonly=True)
-    total_amount = fields.Monetary(string='Deal Value', currency_field='currency_id', readonly=True)
+    selling_total = fields.Monetary(currency_field='currency_id', readonly=True, groups=FIN_HEAD)
+    customization_amount = fields.Monetary(currency_field='currency_id', readonly=True, groups=FIN_HEAD)
+    discount_amount = fields.Monetary(currency_field='currency_id', readonly=True, groups=FIN_HEAD)
+    tax_amount = fields.Monetary(currency_field='currency_id', readonly=True, groups=FIN_HEAD)
+    total_amount = fields.Monetary(string='Deal Value', currency_field='currency_id', readonly=True, groups=FIN_HEAD)
     commission_total = fields.Monetary(
         currency_field='currency_id', readonly=True, groups=FIN_HEAD)
 
@@ -60,9 +60,9 @@ class OtmDeal(models.Model):
     payment_ids = fields.One2many('otm.deal.payment', 'deal_id', string='Payments')
     agreement_count = fields.Integer(compute='_compute_commission_count')
     amount_received = fields.Monetary(
-        currency_field='currency_id', compute='_compute_payment_totals', store=True)
+        currency_field='currency_id', compute='_compute_payment_totals', store=True, groups=FIN_HEAD)
     balance_due = fields.Monetary(
-        currency_field='currency_id', compute='_compute_payment_totals', store=True)
+        currency_field='currency_id', compute='_compute_payment_totals', store=True, groups=FIN_HEAD)
     project_start_allowed = fields.Boolean(
         compute='_compute_payment_totals', store=True,
         help="True when the agreement is completed and every advance installment is received.")
@@ -113,6 +113,24 @@ class OtmDeal(models.Model):
         for deal in self:
             deal.message_post(body=_("Advance payment confirmed by Finance."))
             deal._otm_refresh_payment_totals()
+            deal._otm_try_auto_project()
+
+    def _otm_try_auto_project(self):
+        """Optional setting: create the delivery project as soon as the agreement is completed AND
+        the advance is received (whichever happens last). Never raises: a failure is noted on the deal."""
+        ICP = self.env['ir.config_parameter'].sudo()
+        if not ICP.get_param('sales_project_lifecycle.auto_create_project'):
+            return False
+        for deal in self.sudo():
+            if deal.project_id or not deal.project_start_allowed:
+                continue
+            try:
+                with self.env.cr.savepoint():
+                    deal.action_create_project()
+                deal.message_post(body=_("Project was created automatically (advance received, agreement completed)."))
+            except Exception as exc:  # noqa: BLE001 - never block the payment / agreement transition
+                deal.message_post(body=_("Automatic project creation failed: %s. Create it manually.", exc))
+        return True
 
     @api.depends('commission_ids', 'agreement_ids')
     def _compute_commission_count(self):
@@ -410,16 +428,16 @@ class OtmDealLine(models.Model):
     service_id = fields.Many2one('otm.service', required=True)
     description = fields.Char()
     quantity = fields.Float(digits='Product Unit')
-    base_unit_price = fields.Monetary(currency_field='currency_id')
+    base_unit_price = fields.Monetary(currency_field='currency_id', groups=FIN_HEAD)
     additional_amount = fields.Monetary(
         string='Additional (per unit)', currency_field='currency_id', groups=FIN_HEAD)
     additional_percentage = fields.Float(
         compute='_compute_amounts', store=True, digits=(16, 2), groups=FIN_HEAD)
-    selling_unit_price = fields.Monetary(currency_field='currency_id', compute='_compute_amounts', store=True)
-    base_subtotal = fields.Monetary(currency_field='currency_id', compute='_compute_amounts', store=True)
+    selling_unit_price = fields.Monetary(currency_field='currency_id', compute='_compute_amounts', store=True, groups=FIN_HEAD)
+    base_subtotal = fields.Monetary(currency_field='currency_id', compute='_compute_amounts', store=True, groups=FIN_HEAD)
     additional_subtotal = fields.Monetary(
         currency_field='currency_id', compute='_compute_amounts', store=True, groups=FIN_HEAD)
-    selling_subtotal = fields.Monetary(currency_field='currency_id', compute='_compute_amounts', store=True)
+    selling_subtotal = fields.Monetary(currency_field='currency_id', compute='_compute_amounts', store=True, groups=FIN_HEAD)
 
     @api.depends('quantity', 'base_unit_price', 'additional_amount')
     def _compute_amounts(self):

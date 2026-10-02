@@ -63,7 +63,9 @@ class OtmCustomerAgreement(models.Model):
     timeline_days = fields.Integer(string='Project Timeline (days)')
     approved_services = fields.Text(readonly=True, copy=False)
     approved_customizations = fields.Text(readonly=True, copy=False)
-    final_amount = fields.Monetary(currency_field='currency_id', readonly=True, copy=False)
+    final_amount = fields.Monetary(
+        currency_field='currency_id', readonly=True, copy=False,
+        groups='sales_project_lifecycle.group_sales_head,sales_project_lifecycle.group_finance')
     project_id = fields.Many2one('project.project', string='Project', readonly=True, copy=False)
     payment_schedule_id = fields.Many2one(
         'otm.payment.schedule', string='Payment Schedule',
@@ -168,7 +170,7 @@ class OtmCustomerAgreement(models.Model):
         for ag in self:
             ag.sudo().payment_ids.unlink()
             lines = ag.payment_schedule_id.line_ids.sorted('sequence')
-            total, assigned = ag.final_amount, 0.0
+            total, assigned = ag.sudo().final_amount, 0.0
             for i, sl in enumerate(lines):
                 if i == len(lines) - 1:
                     amount = total - assigned
@@ -185,7 +187,9 @@ class OtmCustomerAgreement(models.Model):
         for ag in self:
             deal = ag.deal_id.sudo()
             lead = ag.lead_id.sudo()
-            w = ag.with_context(otm_transition=True)
+            w = ag.sudo().with_context(otm_transition=True)  # authorised transition; amount fields are restricted
+            if action == 'complete':
+                deal._otm_try_auto_project()
             if action == 'generate':
                 svc = '\n'.join(
                     f"{l.description or l.service_id.name} x {l.quantity:g}"
