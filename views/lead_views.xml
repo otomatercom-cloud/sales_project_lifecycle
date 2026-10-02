@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_otm_lead_list" model="ir.ui.view">
+        <field name="name">otm.lead.list</field>
+        <field name="model">otm.lead</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="lead_quality == 'hot'" decoration-muted="stage == 'lost'">
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="customer_id" optional="show"/>
+                <field name="sales_team_id"/>
+                <field name="salesperson_id" widget="many2one_avatar_user"/>
+                <field name="lead_source_id" optional="hide"/>
+                <field name="lead_quality" widget="badge"/>
+                <field name="stage" widget="badge"/>
+                <field name="base_total" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="priority" widget="priority" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_otm_lead_form" model="ir.ui.view">
+        <field name="name">otm.lead.form</field>
+        <field name="model">otm.lead</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_contact" type="object" string="Contacted" class="btn-primary"
+                            invisible="stage != 'new'"/>
+                    <button name="action_collect_requirement" type="object" string="Requirement Collected" class="btn-primary"
+                            invisible="stage != 'contacted'"/>
+                    <button name="action_demo" type="object" string="Move to Demo" class="btn-primary"
+                            invisible="stage != 'requirement'"/>
+                    <button name="action_estimate" type="object" string="Move to Estimate" class="btn-primary"
+                            invisible="stage != 'demo'"/>
+                    <button name="action_create_estimate" type="object" string="Create Estimate"
+                            invisible="stage not in ('estimate', 'negotiation')"/>
+                    <button name="action_negotiate" type="object" string="Negotiation"
+                            invisible="stage != 'estimate'"/>
+                    <button name="action_open_lost_wizard" type="object" string="Mark Lost"
+                            invisible="stage in ('lost', 'won', 'project')"/>
+                    <button name="action_reopen" type="object" string="Reopen" invisible="stage != 'lost'"
+                            groups="sales_project_lifecycle.group_sales_head"/>
+                    <field name="stage" widget="statusbar" options="{'clickable': False}"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_demos" type="object" class="oe_stat_button" icon="fa-video-camera">
+                            <field name="demo_count" widget="statinfo" string="Demos"/>
+                        </button>
+                        <button name="action_open_estimates" type="object" class="oe_stat_button" icon="fa-calculator">
+                            <field name="estimate_count" widget="statinfo" string="Estimates"/>
+                        </button>
+                        <button name="action_open_deals" type="object" class="oe_stat_button" icon="fa-lock">
+                            <field name="deal_count" widget="statinfo" string="Deals"/>
+                        </button>
+                        <button name="action_open_history" type="object" class="oe_stat_button"
+                                icon="fa-history" string="History"/>
+                        <button name="action_create_customer" type="object" class="oe_stat_button"
+                                icon="fa-user-plus" string="Create Customer" invisible="customer_id"/>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <div class="oe_title">
+                        <span class="text-muted"><field name="reference"/></span>
+                        <h1><field name="name" placeholder="e.g. HRMS for ABC Traders"/></h1>
+                    </div>
+                    <group name="main">
+                        <group name="customer">
+                            <field name="customer_id"/>
+                            <field name="company_name"/>
+                            <field name="contact_number" widget="phone"/>
+                            <field name="whatsapp_number" widget="phone"/>
+                            <field name="email" widget="email"/>
+                            <field name="location"/>
+                        </group>
+                        <group name="sales">
+                            <field name="sales_team_id"/>
+                            <field name="sales_head_id"/>
+                            <field name="salesperson_id"/>
+                            <field name="lead_source_id"/>
+                            <field name="lead_quality" widget="radio" options="{'horizontal': true}"/>
+                            <field name="priority" widget="priority"/>
+                            <field name="expected_budget"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Requirement" name="page_requirement">
+                            <field name="requirement_description" placeholder="What does the customer need?"/>
+                        </page>
+                        <page string="Services" name="page_services">
+                            <field name="service_line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="service_id"/>
+                                    <field name="requirement_description"/>
+                                    <field name="quantity"/>
+                                    <field name="base_unit_price"/>
+                                    <field name="base_subtotal"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer">
+                                <field name="base_total" string="Base Total"/>
+                            </group>
+                        </page>
+                        <page string="Notes" name="page_notes">
+                            <group invisible="stage != 'lost'">
+                                <field name="lost_reason"/>
+                                <field name="lost_description"/>
+                                <field name="lost_date"/>
+                                <field name="lost_by_id"/>
+                            </group>
+                            <field name="notes"/>
+                        </page>
+                        <page string="Attachments" name="page_attachments">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_otm_lead_search" model="ir.ui.view">
+        <field name="name">otm.lead.search</field>
+        <field name="model">otm.lead</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Lead" filter_domain="['|', '|', ('name', 'ilike', self), ('reference', 'ilike', self), ('company_name', 'ilike', self)]"/>
+                <field name="customer_id"/>
+                <field name="salesperson_id"/>
+                <field name="sales_team_id"/>
+                <field name="contact_number"/>
+                <filter name="my_leads" string="My Leads" domain="[('salesperson_id', '=', uid)]"/>
+                <separator/>
+                <filter name="hot" string="Hot" domain="[('lead_quality', '=', 'hot')]"/>
+                <filter name="warm" string="Warm" domain="[('lead_quality', '=', 'warm')]"/>
+                <filter name="cold" string="Cold" domain="[('lead_quality', '=', 'cold')]"/>
+                <separator/>
+                <filter name="open" string="Open" domain="[('stage', 'not in', ('won', 'lost'))]"/>
+                <filter name="lost" string="Lost" domain="[('stage', '=', 'lost')]"/>
+                <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <group>
+                    <filter name="group_team" string="Sales Team" context="{'group_by': 'sales_team_id'}"/>
+                    <filter name="group_salesperson" string="Salesperson" context="{'group_by': 'salesperson_id'}"/>
+                    <filter name="group_stage" string="Stage" context="{'group_by': 'stage'}"/>
+                    <filter name="group_quality" string="Quality" context="{'group_by': 'lead_quality'}"/>
+                    <filter name="group_source" string="Source" context="{'group_by': 'lead_source_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_otm_lead" model="ir.actions.act_window">
+        <field name="name">Leads</field>
+        <field name="res_model">otm.lead</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_otm_lead_search"/>
+    </record>
+</odoo>

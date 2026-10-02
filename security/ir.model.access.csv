@@ -1,0 +1,103 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_team_exec,otm.sales.team executive,model_otm_sales_team,group_sales_executive,1,0,0,0
+access_team_admin,otm.sales.team admin,model_otm_sales_team,group_lifecycle_admin,1,1,1,1
+access_source_exec,otm.lead.source executive,model_otm_lead_source,group_sales_executive,1,0,0,0
+access_source_admin,otm.lead.source admin,model_otm_lead_source,group_lifecycle_admin,1,1,1,1
+access_service_exec,otm.service executive,model_otm_service,group_sales_executive,1,0,0,0
+access_service_admin,otm.service admin,model_otm_service,group_lifecycle_admin,1,1,1,1
+access_lead_exec,otm.lead executive,model_otm_lead,group_sales_executive,1,1,1,0
+access_lead_head,otm.lead head,model_otm_lead,group_sales_head,1,1,1,1
+access_lead_admin,otm.lead admin,model_otm_lead,group_lifecycle_admin,1,1,1,1
+access_line_exec,otm.lead.service.line executive,model_otm_lead_service_line,group_sales_executive,1,1,1,1
+access_line_admin,otm.lead.service.line admin,model_otm_lead_service_line,group_lifecycle_admin,1,1,1,1
+access_log_exec,otm.transition.log executive,model_otm_transition_log,group_sales_executive,1,0,0,0
+access_log_admin,otm.transition.log admin,model_otm_transition_log,group_lifecycle_admin,1,0,0,0
+access_lost_wizard_exec,otm.lead.lost.wizard executive,model_otm_lead_lost_wizard,group_sales_executive,1,1,1,1
+access_demo_exec,otm demo executive,model_otm_demo,group_sales_executive,1,1,1,1
+access_demo_admin,otm demo admin,model_otm_demo,group_lifecycle_admin,1,1,1,1
+access_estimate_exec,otm estimate executive,model_otm_estimate,group_sales_executive,1,1,1,0
+access_estimate_admin,otm estimate admin,model_otm_estimate,group_lifecycle_admin,1,1,1,1
+access_estimate_line_exec,otm estimate_line executive,model_otm_estimate_line,group_sales_executive,1,1,1,1
+access_estimate_line_admin,otm estimate_line admin,model_otm_estimate_line,group_lifecycle_admin,1,1,1,1
+access_customization_exec,otm customization executive,model_otm_estimate_customization,group_sales_executive,1,1,1,1
+access_customization_admin,otm customization admin,model_otm_estimate_customization,group_lifecycle_admin,1,1,1,1
+access_estimate_revision_exec,otm estimate revision executive,model_otm_estimate_revision,group_sales_executive,1,0,0,0
+access_estimate_revision_admin,otm estimate revision admin,model_otm_estimate_revision,group_lifecycle_admin,1,0,0,0
+access_reason_wizard_exec,otm reason wizard executive,model_otm_reason_wizard,group_sales_executive,1,1,1,1
+access_deal_exec,otm deal executive,model_otm_deal,group_sales_executive,1,0,0,0
+access_deal_head,otm deal head,model_otm_deal,group_sales_head,1,1,1,0
+access_deal_finance,otm deal finance,model_otm_deal,group_finance,1,0,0,0
+access_deal_admin,otm deal admin,model_otm_deal,group_lifecycle_admin,1,1,1,0
+access_deal_line_exec,otm deal line executive,model_otm_deal_line,group_sales_executive,1,0,0,0
+access_deal_line_finance,otm deal line finance,model_otm_deal_line,group_finance,1,0,0,0
+access_deal_line_admin,otm deal line admin,model_otm_deal_line,group_lifecycle_admin,1,0,0,0
+access_rule_head,otm commission rule head,model_otm_commission_rule,group_sales_head,1,0,0,0
+access_rule_finance,otm commission rule finance,model_otm_commission_rule,group_finance,1,0,0,0
+access_rule_admin,otm commission rule admin,model_otm_commission_rule,group_lifecycle_admin,1,1,1,1
+access_commission_head,otm commission head,model_otm_sales_commission,group_sales_head,1,0,0,0
+access_commission_finance,otm commission finance,model_otm_sales_commission,group_finance,1,0,0,0
+access_commission_finmgr,otm commission finance manager,model_otm_sales_commission,group_finance_manager,1,1,0,0
+access_commission_admin,otm commission admin,model_otm_sales_commission,group_lifecycle_admin,1,1,0,0
+access_wallet_head,otm wallet head,model_otm_sales_wallet,group_sales_head,1,0,0,0
+access_wallet_finance,otm wallet finance,model_otm_sales_wallet,group_finance,1,0,0,0
+access_wallet_admin,otm wallet admin,model_otm_sales_wallet,group_lifecycle_admin,1,0,0,0
+access_wtxn_head,otm wallet txn head,model_otm_sales_wallet_transaction,group_sales_head,1,0,0,0
+access_wtxn_finance,otm wallet txn finance,model_otm_sales_wallet_transaction,group_finance,1,0,0,0
+access_wtxn_admin,otm wallet txn admin,model_otm_sales_wallet_transaction,group_lifecycle_admin,1,0,0,0
+access_agreement_exec,otm agreement executive,model_otm_customer_agreement,group_sales_executive,1,1,1,0
+access_agreement_finance,otm agreement finance,model_otm_customer_agreement,group_finance,1,0,0,0
+access_agreement_admin,otm agreement admin,model_otm_customer_agreement,group_lifecycle_admin,1,1,1,0
+access_payment_exec,otm deal payment executive,model_otm_deal_payment,group_sales_executive,1,1,0,0
+access_payment_finance,otm deal payment finance,model_otm_deal_payment,group_finance,1,1,0,0
+access_payment_admin,otm deal payment admin,model_otm_deal_payment,group_lifecycle_admin,1,1,0,0
+access_schedule_exec,otm payment schedule executive,model_otm_payment_schedule,group_sales_executive,1,0,0,0
+access_schedule_finance,otm payment schedule finance,model_otm_payment_schedule,group_finance,1,0,0,0
+access_schedule_admin,otm payment schedule admin,model_otm_payment_schedule,group_lifecycle_admin,1,1,1,1
+access_schedule_line_exec,otm payment schedule line executive,model_otm_payment_schedule_line,group_sales_executive,1,0,0,0
+access_schedule_line_finance,otm payment schedule line finance,model_otm_payment_schedule_line,group_finance,1,0,0,0
+access_schedule_line_admin,otm payment schedule line admin,model_otm_payment_schedule_line,group_lifecycle_admin,1,1,1,1
+access_project_sales_exec,otm project executive,project.model_project_project,group_sales_executive,1,0,0,0
+access_project_sales_finance,otm project finance,project.model_project_project,group_finance,1,0,0,0
+access_pstage_tmpl_all,otm project stage template read,model_otm_project_stage,base.group_user,1,0,0,0
+access_pstage_tmpl_admin,otm project stage template admin,model_otm_project_stage,group_lifecycle_admin,1,1,1,1
+access_pstage_line_exec,otm project stage line sales,model_otm_project_stage_line,group_sales_executive,1,0,0,0
+access_pstage_line_finance,otm project stage line finance,model_otm_project_stage_line,group_finance,1,0,0,0
+access_pstage_line_team,otm project stage line team,model_otm_project_stage_line,project.group_project_user,1,0,0,0
+access_pstage_line_head,otm project stage line head,model_otm_project_stage_line,group_project_head,1,1,1,1
+access_pstage_line_admin,otm project stage line admin,model_otm_project_stage_line,group_lifecycle_admin,1,1,1,1
+access_log_projecthead,otm transition log project head,model_otm_transition_log,group_project_head,1,0,0,0
+access_qc_qc,otm qc qc,model_otm_qc,group_qc,1,1,0,0
+access_qc_head,otm qc head,model_otm_qc,group_project_head,1,1,0,0
+access_qc_admin,otm qc admin,model_otm_qc,group_lifecycle_admin,1,1,0,0
+access_issue_dev,otm qc issue dev,model_otm_qc_issue,group_developer,1,1,0,0
+access_issue_qc,otm qc issue qc,model_otm_qc_issue,group_qc,1,1,1,0
+access_issue_head,otm qc issue head,model_otm_qc_issue,group_project_head,1,1,1,0
+access_issue_admin,otm qc issue admin,model_otm_qc_issue,group_lifecycle_admin,1,1,1,0
+access_server_user,otm client server user,model_otm_client_server,project.group_project_user,1,0,0,0
+access_server_head,otm client server head,model_otm_client_server,group_project_head,1,1,1,0
+access_server_admin,otm client server admin,model_otm_client_server,group_lifecycle_admin,1,1,1,0
+access_deploy_user,otm deployment user,model_otm_deployment,project.group_project_user,1,1,0,0
+access_deploy_head,otm deployment head,model_otm_deployment,group_project_head,1,1,1,0
+access_deploy_admin,otm deployment admin,model_otm_deployment,group_lifecycle_admin,1,1,1,0
+access_reason_wizard_user,otm reason wizard users,model_otm_reason_wizard,base.group_user,1,1,1,1
+access_training_trainer,otm training trainer,model_otm_training,project.group_project_user,1,1,0,0
+access_training_head,otm training head,model_otm_training,group_project_head,1,1,1,0
+access_training_admin,otm training admin,model_otm_training,group_lifecycle_admin,1,1,1,0
+access_review_exec,otm review executive,model_otm_customer_review,group_sales_executive,1,1,0,0
+access_review_head,otm review head,model_otm_customer_review,group_project_head,1,1,0,0
+access_review_admin,otm review admin,model_otm_customer_review,group_lifecycle_admin,1,1,0,0
+access_cservice_exec,otm client service exec,model_otm_client_service,group_sales_executive,1,1,1,0
+access_cservice_ph,otm client service ph,model_otm_client_service,group_project_head,1,1,1,0
+access_cservice_fin,otm client service fin,model_otm_client_service,group_finance,1,0,0,0
+access_cservice_admin,otm client service admin,model_otm_client_service,group_lifecycle_admin,1,1,1,0
+access_renewal_exec,otm renewal exec,model_otm_service_renewal,group_sales_executive,1,1,0,0
+access_renewal_ph,otm renewal ph,model_otm_service_renewal,group_project_head,1,0,0,0
+access_renewal_fin,otm renewal fin,model_otm_service_renewal,group_finance,1,1,0,0
+access_renewal_admin,otm renewal admin,model_otm_service_renewal,group_lifecycle_admin,1,1,0,0
+access_integration_head,otm integration head,model_otm_client_integration,group_sales_head,1,1,1,0
+access_integration_user,otm integration user,model_otm_client_integration,project.group_project_user,1,1,0,0
+access_integration_ph,otm integration ph,model_otm_client_integration,group_project_head,1,1,1,0
+access_integration_admin,otm integration admin,model_otm_client_integration,group_lifecycle_admin,1,1,1,0
+access_reminder_ph,otm reminder log ph,model_otm_expiry_reminder,group_project_head,1,0,0,0
+access_reminder_head,otm reminder log head,model_otm_expiry_reminder,group_sales_head,1,0,0,0
+access_reminder_admin,otm reminder log admin,model_otm_expiry_reminder,group_lifecycle_admin,1,0,0,0

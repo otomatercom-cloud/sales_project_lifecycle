@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_otm_deal_list" model="ir.ui.view">
+        <field name="name">otm.deal.list</field>
+        <field name="model">otm.deal</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="status == 'cancelled'" decoration-warning="status == 'revision'">
+                <field name="name"/>
+                <field name="lead_id"/>
+                <field name="customer_id"/>
+                <field name="sales_team_id"/>
+                <field name="total_amount" sum="Total"/>
+                <field name="locked_date"/>
+                <field name="status" widget="badge"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_otm_deal_form" model="ir.ui.view">
+        <field name="name">otm.deal.form</field>
+        <field name="model">otm.deal</field>
+        <field name="arch" type="xml">
+            <form create="0">
+                <header>
+                    <button name="action_create_agreement" type="object" string="Create Agreement" class="btn-primary"
+                            invisible="status != 'locked' or agreement_count"/>
+                    <button name="action_create_project" type="object" string="Create Project" class="btn-primary"
+                            invisible="status != 'locked' or project_id or not project_start_allowed"
+                            groups="sales_project_lifecycle.group_sales_head"/>
+                    <button name="action_ask_reason" type="object" string="Revise Deal"
+                            context="{'otm_reason_method': 'action_revise'}"
+                            groups="sales_project_lifecycle.group_sales_head"
+                            invisible="status != 'locked'"/>
+                    <button name="action_ask_reason" type="object" string="Lock Again" class="btn-primary"
+                            context="{'otm_reason_method': 'action_relock'}"
+                            groups="sales_project_lifecycle.group_sales_head"
+                            invisible="status != 'revision'"/>
+                    <button name="action_ask_reason" type="object" string="Cancel Deal"
+                            context="{'otm_reason_method': 'action_cancel'}"
+                            groups="sales_project_lifecycle.group_sales_head"
+                            invisible="status not in ('locked', 'revision')"/>
+                    <field name="project_id" invisible="1"/>
+                    <field name="status" widget="statusbar" options="{'clickable': False}"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_commissions" type="object" class="oe_stat_button" icon="fa-money"
+                                groups="sales_project_lifecycle.group_sales_head,sales_project_lifecycle.group_finance">
+                            <field name="commission_count" widget="statinfo" string="Commissions"/>
+                        </button>
+                        <button name="action_open_project" type="object" class="oe_stat_button" icon="fa-tasks"
+                                string="Project" invisible="not project_id"/>
+                        <button name="action_open_agreements" type="object" class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="agreement_count" widget="statinfo" string="Agreements"/>
+                        </button>
+                        <button name="action_open_payments" type="object" class="oe_stat_button" icon="fa-credit-card"
+                                groups="sales_project_lifecycle.group_sales_head,sales_project_lifecycle.group_finance">
+                            <field name="amount_received" widget="statinfo" string="Received"/>
+                        </button>
+                        <button name="action_open_history" type="object" class="oe_stat_button" icon="fa-history"
+                                string="History"/>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="project_start_allowed or status != 'locked'">
+                        <field name="project_start_message"/>
+                    </div>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="lead_id"/>
+                            <field name="estimate_id"/>
+                            <field name="estimate_revision"/>
+                            <field name="customer_id"/>
+                        </group>
+                        <group>
+                            <field name="sales_team_id"/>
+                            <field name="sales_head_id"/>
+                            <field name="locked_by_id"/>
+                            <field name="locked_date"/>
+                            <field name="revision_count"/>
+                            <field name="amount_received"/>
+                            <field name="balance_due"/>
+                            <field name="project_start_allowed"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Lock Reason"><field name="lock_reason" nolabel="1"/></group>
+                    <notebook>
+                        <page string="Services" name="services">
+                            <field name="line_ids">
+                                <list>
+                                    <field name="service_id"/>
+                                    <field name="quantity"/>
+                                    <field name="base_unit_price"/>
+                                    <field name="additional_amount" groups="sales_project_lifecycle.group_sales_head,sales_project_lifecycle.group_finance"/>
+                                    <field name="additional_percentage" groups="sales_project_lifecycle.group_sales_head,sales_project_lifecycle.group_finance"/>
+                                    <field name="selling_unit_price"/>
+                                    <field name="selling_subtotal" sum="Total"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes"><field name="notes"/></page>
+                    </notebook>
+                    <group class="oe_subtotal_footer">
+                        <field name="base_total"/>
+                        <field name="additional_total" groups="sales_project_lifecycle.group_sales_head,sales_project_lifecycle.group_finance"/>
+                        <field name="selling_total"/>
+                        <field name="customization_amount"/>
+                        <field name="discount_amount"/>
+                        <field name="tax_amount"/>
+                        <field name="total_amount" class="oe_subtotal_footer_separator"/>
+                        <field name="commission_total" groups="sales_project_lifecycle.group_sales_head,sales_project_lifecycle.group_finance"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_otm_deal_search" model="ir.ui.view">
+        <field name="name">otm.deal.search</field>
+        <field name="model">otm.deal</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="lead_id"/>
+                <field name="customer_id"/>
+                <filter name="locked" string="Locked" domain="[('status','=','locked')]"/>
+                <group>
+                    <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
+                    <filter name="group_team" string="Team" context="{'group_by': 'sales_team_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_otm_deal" model="ir.actions.act_window">
+        <field name="name">Deals</field>
+        <field name="res_model">otm.deal</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

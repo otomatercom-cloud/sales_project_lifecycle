@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_otm_demo_list" model="ir.ui.view">
+        <field name="name">otm.demo.list</field>
+        <field name="model">otm.demo</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="status in ('cancelled','no_show')" decoration-success="status == 'completed'">
+                <field name="name"/>
+                <field name="lead_id"/>
+                <field name="demo_date"/>
+                <field name="start_time" widget="float_time"/>
+                <field name="end_time" widget="float_time"/>
+                <field name="demo_person_id"/>
+                <field name="salesperson_id" optional="hide"/>
+                <field name="status" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_otm_demo_form" model="ir.ui.view">
+        <field name="name">otm.demo.form</field>
+        <field name="model">otm.demo</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" type="object" string="Confirm" class="btn-primary"
+                            invisible="status != 'scheduled'"/>
+                    <button name="action_complete" type="object" string="Complete" class="btn-primary"
+                            invisible="status != 'confirmed'"/>
+                    <button name="action_ask_reason" type="object" string="Cancel Demo"
+                            context="{'otm_reason_method': 'action_cancel'}"
+                            invisible="status not in ('scheduled', 'confirmed')"/>
+                    <button name="action_ask_reason" type="object" string="No Show"
+                            context="{'otm_reason_method': 'action_no_show'}"
+                            invisible="status not in ('scheduled', 'confirmed')"/>
+                    <field name="status" widget="statusbar" options="{'clickable': False}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="lead_id"/>
+                            <field name="demo_person_id"/>
+                            <field name="customer_confirmation"/>
+                        </group>
+                        <group>
+                            <field name="demo_date"/>
+                            <field name="start_time" widget="float_time"/>
+                            <field name="end_time" widget="float_time"/>
+                        </group>
+                    </group>
+                    <group string="Outcome" invisible="status not in ('completed','cancelled','no_show')">
+                        <field name="outcome_reason" invisible="status not in ('cancelled','no_show')"/>
+                        <field name="completed_date" invisible="status != 'completed'"/>
+                        <field name="completed_by_id" invisible="status != 'completed'"/>
+                    </group>
+                    <group string="Notes"><field name="notes" nolabel="1"/></group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_otm_demo_search" model="ir.ui.view">
+        <field name="name">otm.demo.search</field>
+        <field name="model">otm.demo</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="lead_id"/>
+                <field name="demo_person_id"/>
+                <filter name="upcoming" string="Upcoming" domain="[('status','in',('scheduled','confirmed'))]"/>
+                <filter name="completed" string="Completed" domain="[('status','=','completed')]"/>
+                <group>
+                    <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
+                    <filter name="group_person" string="Demo Person" context="{'group_by': 'demo_person_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_otm_demo" model="ir.actions.act_window">
+        <field name="name">Demos</field>
+        <field name="res_model">otm.demo</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

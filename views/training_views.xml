@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_otm_training_list" model="ir.ui.view">
+        <field name="name">otm.training.list</field>
+        <field name="model">otm.training</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="status == 'cancelled'" decoration-success="status == 'completed'">
+                <field name="name"/><field name="project_id"/><field name="training_type"/>
+                <field name="trainer_id"/><field name="date"/>
+                <field name="start_time" widget="float_time"/><field name="end_time" widget="float_time"/>
+                <field name="required"/><field name="status" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_otm_training_form" model="ir.ui.view">
+        <field name="name">otm.training.form</field>
+        <field name="model">otm.training</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_start" type="object" string="Start Session" class="btn-primary" invisible="status != 'scheduled'"/>
+                    <button name="action_complete" type="object" string="Complete" class="btn-primary" invisible="status != 'in_progress'"/>
+                    <button name="action_ask_reason" type="object" string="Cancel Session"
+                            context="{'otm_reason_method': 'action_cancel'}" invisible="status not in ('scheduled','in_progress')"/>
+                    <field name="status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="project_id"/><field name="customer_id"/><field name="required"/>
+                            <field name="training_type"/><field name="trainer_id"/>
+                        </group>
+                        <group>
+                            <field name="date"/><field name="start_time" widget="float_time"/>
+                            <field name="end_time" widget="float_time"/>
+                            <field name="customer_confirmation"/><field name="completed_date"/>
+                            <field name="cancel_reason" invisible="status != 'cancelled'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Content">
+                            <group>
+                                <field name="participants"/><field name="topics"/><field name="notes"/>
+                            </group>
+                        </page>
+                        <page string="Materials &amp; Recording">
+                            <group>
+                                <field name="materials" filename="materials_filename"/>
+                                <field name="materials_filename" invisible="1"/>
+                                <field name="recording" filename="recording_filename"/>
+                                <field name="recording_filename" invisible="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_otm_training" model="ir.actions.act_window">
+        <field name="name">Training</field><field name="res_model">otm.training</field><field name="view_mode">list,form</field>
+    </record>
+    <record id="view_otm_project_form_training" model="ir.ui.view">
+        <field name="name">otm.project.lifecycle.form.training</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="view_otm_project_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_otm_open_trainings" type="object" class="oe_stat_button" icon="fa-graduation-cap"
+                        groups="sales_project_lifecycle.group_project_head,sales_project_lifecycle.group_developer">
+                    <field name="otm_training_done" widget="boolean" string="Training"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

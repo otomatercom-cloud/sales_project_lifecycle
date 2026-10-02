@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_otm" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.otm</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="95"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Sales Lifecycle" string="Sales Lifecycle" name="sales_project_lifecycle"
+                     groups="sales_project_lifecycle.group_lifecycle_admin">
+                    <block title="Estimates and Discounts" name="otm_estimates">
+                        <setting string="Executive Discount Limit (%)" help="Discounts up to this percentage need no approval.">
+                            <field name="otm_executive_discount_limit"/>
+                        </setting>
+                        <setting string="Sales Head Discount Limit (%)" help="Above this percentage the Administrator must approve.">
+                            <field name="otm_head_discount_limit"/>
+                        </setting>
+                        <setting string="Default Estimate Tax (%)">
+                            <field name="otm_default_tax_percent"/>
+                        </setting>
+                    </block>
+                    <block title="Agreements" name="otm_agreements">
+                        <setting string="Default Agreement Terms" help="Pre-filled in new agreements.">
+                            <field name="otm_agreement_terms"/>
+                        </setting>
+                    </block>
+                    <block title="Leads" name="otm_leads">
+                        <setting string="Require Lost Description">
+                            <field name="otm_lost_description_required"/>
+                        </setting>
+                    </block>
+                    <block title="Follow-ups" name="otm_followups">
+                        <setting string="Follow-up After (days)" help="Waiting estimates, payments and agreements raise an activity after this many days.">
+                            <field name="otm_followup_days"/>
+                        </setting>
+                    </block>
+                    <block title="Renewals" name="otm_renewals">
+                        <setting string="Expiry Reminder Days" help="Days before expiry when reminders are created (0 = on expiry).">
+                            <field name="otm_reminder_days"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

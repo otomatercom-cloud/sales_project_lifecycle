@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_otm_cservice_list" model="ir.ui.view">
+        <field name="name">otm.client.service.list</field>
+        <field name="model">otm.client.service</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="status == 'expired'" decoration-warning="status == 'expiring'"
+                  decoration-muted="status == 'cancelled'">
+                <field name="name"/><field name="customer_id"/><field name="service_name"/><field name="service_kind"/>
+                <field name="amount"/><field name="billing_type"/><field name="expiry_date"/>
+                <field name="days_to_expiry"/><field name="responsible_user_id"/>
+                <field name="status" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_otm_cservice_search" model="ir.ui.view">
+        <field name="name">otm.client.service.search</field>
+        <field name="model">otm.client.service</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/><field name="customer_id"/><field name="service_name"/>
+                <filter name="f_active" string="Active" domain="[('status', 'in', ('active', 'renewed'))]"/>
+                <filter name="f_expiring" string="Expiring" domain="[('status', '=', 'expiring')]"/>
+                <filter name="f_expired" string="Expired" domain="[('status', '=', 'expired')]"/>
+                <group><filter name="g_status" string="Status" context="{'group_by': 'status'}"/>
+                       <filter name="g_kind" string="Type" context="{'group_by': 'service_kind'}"/>
+                       <filter name="g_customer" string="Customer" context="{'group_by': 'customer_id'}"/></group>
+            </search>
+        </field>
+    </record>
+    <record id="view_otm_cservice_form" model="ir.ui.view">
+        <field name="name">otm.client.service.form</field>
+        <field name="model">otm.client.service</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_start_renewal" type="object" string="Start Renewal" class="btn-primary"
+                            invisible="status == 'cancelled' or billing_type == 'one_time'"/>
+                    <button name="action_ask_reason" type="object" string="Cancel Service"
+                            context="{'otm_reason_method': 'action_cancel', 'otm_reason_title': 'Cancel Service'}"
+                            invisible="status == 'cancelled'"/>
+                    <field name="status" widget="statusbar" statusbar_visible="active,expiring,expired,renewed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_renewals" type="object" class="oe_stat_button" icon="fa-refresh">
+                            <field name="renewal_count" widget="statinfo" string="Renewals"/>
+                        </button>
+                    </div>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="customer_id"/><field name="project_id"/>
+                            <field name="service_id"/><field name="service_name"/><field name="service_kind"/>
+                            <field name="server_id"/>
+                        </group>
+                        <group>
+                            <field name="amount"/><field name="billing_type"/>
+                            <field name="start_date"/><field name="expiry_date"/><field name="days_to_expiry"/>
+                            <field name="renewal_period"/><field name="renewal_amount"/>
+                            <field name="last_renewed_date"/>
+                        </group>
+                        <group>
+                            <field name="responsible_user_id"/><field name="sales_team_id"/>
+                            <field name="cancel_reason" invisible="status != 'cancelled'"/>
+                        </group>
+                    </group>
+                    <field name="notes" placeholder="Notes"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_otm_cservice" model="ir.actions.act_window">
+        <field name="name">Client Services</field><field name="res_model">otm.client.service</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Renewals -->
+    <record id="view_otm_renewal_list" model="ir.ui.view">
+        <field name="name">otm.service.renewal.list</field>
+        <field name="model">otm.service.renewal</field>
+        <field name="arch" type="xml">
+            <list><field name="name"/><field name="service_id"/><field name="customer_id"/><field name="amount"/>
+                  <field name="old_expiry_date"/><field name="new_expiry_date"/><field name="status" widget="badge"/></list>
+        </field>
+    </record>
+    <record id="view_otm_renewal_form" model="ir.ui.view">
+        <field name="name">otm.service.renewal.form</field>
+        <field name="model">otm.service.renewal</field>
+        <field name="arch" type="xml">
+            <form create="0" delete="0">
+                <header>
+                    <button name="action_send_estimate" type="object" string="Send Renewal Estimate" class="btn-primary" invisible="status != 'follow_up'"/>
+                    <button name="action_approve" type="object" string="Customer Approved" class="btn-primary" invisible="status != 'estimate_sent'"/>
+                    <button name="action_confirm_payment" type="object" string="Confirm Payment" class="btn-primary"
+                            groups="sales_project_lifecycle.group_finance" invisible="status != 'approved'"/>
+                    <button name="action_renew" type="object" string="Renew Service" class="btn-primary" invisible="status != 'paid'"/>
+                    <button name="action_ask_reason" type="object" string="Cancel"
+                            context="{'otm_reason_method': 'action_cancel', 'otm_reason_title': 'Cancel Renewal'}"
+                            invisible="status not in ('follow_up', 'estimate_sent', 'approved')"/>
+                    <field name="status" widget="statusbar" statusbar_visible="follow_up,estimate_sent,approved,paid,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group><field name="service_id"/><field name="customer_id"/>
+                               <field name="renewal_period"/><field name="amount"/></group>
+                        <group><field name="old_expiry_date"/><field name="new_expiry_date"/>
+                               <field name="approval_reference"/></group>
+                        <group string="Payment (Finance)">
+                            <field name="payment_reference"/><field name="payment_method"/>
+                            <field name="paid_date"/><field name="proof" filename="proof_filename"/>
+                            <field name="proof_filename" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="estimate_note" placeholder="Follow-up and estimate notes"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_otm_renewal" model="ir.actions.act_window">
+        <field name="name">Renewals</field><field name="res_model">otm.service.renewal</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Integrations -->
+    <record id="view_otm_integration_list" model="ir.ui.view">
+        <field name="name">otm.client.integration.list</field>
+        <field name="model">otm.client.integration</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="status == 'expired'" decoration-warning="status == 'expiring'"
+                  decoration-muted="status == 'cancelled'">
+                <field name="name"/><field name="customer_id"/><field name="integration_type"/><field name="provider"/>
+                <field name="setup_amount"/><field name="recurring_amount"/><field name="expiry_date"/>
+                <field name="responsible_developer_id"/><field name="status" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_otm_integration_form" model="ir.ui.view">
+        <field name="name">otm.client.integration.form</field>
+        <field name="model">otm.client.integration</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_renew" type="object" string="Renew" class="btn-primary"
+                            invisible="status == 'cancelled'"/>
+                    <button name="action_ask_reason" type="object" string="Cancel"
+                            context="{'otm_reason_method': 'action_cancel', 'otm_reason_title': 'Cancel Integration'}"
+                            invisible="status == 'cancelled'"/>
+                    <field name="status" widget="statusbar" statusbar_visible="active,expiring,expired"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group><field name="customer_id"/><field name="project_id"/><field name="integration_type"/>
+                               <field name="provider"/><field name="responsible_developer_id"/><field name="sales_team_id"/></group>
+                        <group string="Setup (one time)"><field name="setup_amount"/><field name="start_date"/></group>
+                        <group string="Recurring"><field name="recurring_amount"/><field name="expiry_date"/>
+                               <field name="renewal_date"/></group>
+                    </group>
+                    <field name="description" placeholder="Description"/>
+                    <group><field name="documentation" filename="documentation_filename"/>
+                           <field name="documentation_filename" invisible="1"/></group>
+                    <field name="notes" placeholder="Notes"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_otm_integration" model="ir.actions.act_window">
+        <field name="name">Integrations</field><field name="res_model">otm.client.integration</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- server: responsible user -->
+    <record id="view_otm_server_form_resp" model="ir.ui.view">
+        <field name="name">otm.client.server.form.responsible</field>
+        <field name="model">otm.client.server</field>
+        <field name="inherit_id" ref="view_otm_server_form"/>
+        <field name="arch" type="xml">
+            <field name="backup_schedule" position="after"><field name="responsible_id"/></field>
+        </field>
+    </record>
+</odoo>

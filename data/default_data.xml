@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="source_website" model="otm.lead.source"><field name="name">Website</field><field name="sequence">1</field></record>
+    <record id="source_google" model="otm.lead.source"><field name="name">Google</field><field name="sequence">2</field></record>
+    <record id="source_meta" model="otm.lead.source"><field name="name">Meta</field><field name="sequence">3</field></record>
+    <record id="source_whatsapp" model="otm.lead.source"><field name="name">WhatsApp</field><field name="sequence">4</field></record>
+    <record id="source_referral" model="otm.lead.source"><field name="name">Referral</field><field name="sequence">5</field></record>
+    <record id="source_existing" model="otm.lead.source"><field name="name">Existing Customer</field><field name="sequence">6</field></record>
+    <record id="source_direct" model="otm.lead.source"><field name="name">Direct</field><field name="sequence">7</field></record>
+    <record id="source_other" model="otm.lead.source"><field name="name">Other</field><field name="sequence">99</field></record>
+    <record id="commission_rule_default" model="otm.commission.rule">
+        <field name="name">Standard: 100% of additional amount, earned on advance</field>
+        <field name="is_default" eval="True"/>
+        <field name="trigger">advance_received</field>
+        <field name="percentage">100</field>
+        <field name="approval_required" eval="True"/>
+    </record>
+    <record id="payment_schedule_default" model="otm.payment.schedule">
+        <field name="name">Standard 50 / 30 / 20</field>
+        <field name="is_default" eval="True"/>
+        <field name="line_ids" eval="[
+            (0, 0, {'sequence': 10, 'name': 'Advance before development', 'percentage': 50, 'trigger': 'advance'}),
+            (0, 0, {'sequence': 20, 'name': 'After training', 'percentage': 30, 'trigger': 'after_training'}),
+            (0, 0, {'sequence': 30, 'name': 'Final payment before closure', 'percentage': 20, 'trigger': 'final_delivery'}),
+        ]"/>
+    </record>
+    <record id="project_stage_1" model="otm.project.stage"><field name="name">Requirement Analysis</field><field name="sequence">10</field><field name="duration_days">2</field><field name="responsible_role">project_head</field></record>
+    <record id="project_stage_2" model="otm.project.stage"><field name="name">Development</field><field name="sequence">20</field><field name="duration_days">7</field><field name="responsible_role">developer</field></record>
+    <record id="project_stage_3" model="otm.project.stage"><field name="name">Internal Testing</field><field name="sequence">30</field><field name="duration_days">2</field><field name="responsible_role">developer</field></record>
+    <record id="project_stage_4" model="otm.project.stage"><field name="name">QC</field><field name="sequence">40</field><field name="duration_days">3</field><field name="responsible_role">qc</field></record>
+    <record id="project_stage_5" model="otm.project.stage"><field name="name">Deployment</field><field name="sequence">50</field><field name="duration_days">1</field><field name="responsible_role">deployment</field></record>
+    <record id="project_stage_6" model="otm.project.stage"><field name="name">Customer Verification</field><field name="sequence">60</field><field name="duration_days">2</field><field name="responsible_role">customer</field></record>
+    <record id="project_stage_7" model="otm.project.stage"><field name="name">Training</field><field name="sequence">70</field><field name="duration_days">1</field><field name="responsible_role">trainer</field></record>
+    <record id="project_stage_8" model="otm.project.stage"><field name="name">30% Payment</field><field name="sequence">80</field><field name="duration_days">0</field><field name="responsible_role">finance</field></record>
+    <record id="project_stage_9" model="otm.project.stage"><field name="name">Final Delivery</field><field name="sequence">90</field><field name="duration_days">1</field><field name="responsible_role">project_head</field></record>
+    <record id="project_stage_10" model="otm.project.stage"><field name="name">20% Payment</field><field name="sequence">100</field><field name="duration_days">0</field><field name="responsible_role">finance</field></record>
+    <record id="project_stage_11" model="otm.project.stage"><field name="name">Customer Review</field><field name="sequence">110</field><field name="duration_days">2</field><field name="responsible_role">customer</field></record>
+    <record id="project_stage_12" model="otm.project.stage"><field name="name">Completed</field><field name="sequence">120</field><field name="duration_days">0</field><field name="responsible_role">project_head</field></record>
+</odoo>

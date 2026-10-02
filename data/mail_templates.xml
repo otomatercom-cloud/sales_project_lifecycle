@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="mail_demo_confirmation" model="mail.template">
+            <field name="name">Lifecycle: Demo Confirmation</field>
+            <field name="model_id" ref="model_otm_demo"/>
+            <field name="subject">Demo confirmed: {{ object.display_name }}</field>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; max-width: 600px;">
+    <p>Dear <t t-out="(object.sudo()._otm_email_partner().name) or 'Customer'"/>,</p>
+    <p>Your product demonstration is confirmed for <b><t t-out="object.demo_date"/></b> with <t t-out="object.demo_person_id.name"/>. Please let us know if the time needs to change.</p>
+    <p>Kind regards,<br/><t t-out="object.env.company.name"/></p>
+</div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+        <record id="mail_estimate" model="mail.template">
+            <field name="name">Lifecycle: Estimate</field>
+            <field name="model_id" ref="model_otm_estimate"/>
+            <field name="subject">Estimate {{ object.display_name }}</field>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; max-width: 600px;">
+    <p>Dear <t t-out="(object.sudo()._otm_email_partner().name) or 'Customer'"/>,</p>
+    <p>Please find your estimate <b><t t-out="object.display_name"/></b> for a total of <b><t t-out="object.currency_id.format(object.total_amount)"/></b>, valid until <t t-out="object.validity_date"/>. We would be glad to discuss it with you.</p>
+    <p>Kind regards,<br/><t t-out="object.env.company.name"/></p>
+</div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+        <record id="mail_estimate_revision" model="mail.template">
+            <field name="name">Lifecycle: Estimate Revision</field>
+            <field name="model_id" ref="model_otm_estimate"/>
+            <field name="subject">Revised estimate {{ object.display_name }}</field>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; max-width: 600px;">
+    <p>Dear <t t-out="(object.sudo()._otm_email_partner().name) or 'Customer'"/>,</p>
+    <p>We have revised your estimate. The new total is <b><t t-out="object.currency_id.format(object.total_amount)"/></b> (<t t-out="object.display_name"/>), valid until <t t-out="object.validity_date"/>.</p>
+    <p>Kind regards,<br/><t t-out="object.env.company.name"/></p>
+</div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+        <record id="mail_agreement" model="mail.template">
+            <field name="name">Lifecycle: Agreement</field>
+            <field name="model_id" ref="model_otm_customer_agreement"/>
+            <field name="subject">Agreement {{ object.display_name }} for your review</field>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; max-width: 600px;">
+    <p>Dear <t t-out="(object.sudo()._otm_email_partner().name) or 'Customer'"/>,</p>
+    <p>Your agreement <b><t t-out="object.display_name"/></b> for <b><t t-out="object.currency_id.format(object.final_amount)"/></b> is ready. Please review it and confirm your acceptance.</p>
+    <p>Kind regards,<br/><t t-out="object.env.company.name"/></p>
+</div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+        <record id="mail_advance_request" model="mail.template">
+            <field name="name">Lifecycle: Advance Request</field>
+            <field name="model_id" ref="model_otm_deal_payment"/>
+            <field name="subject">Payment request: {{ object.name }}</field>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; max-width: 600px;">
+    <p>Dear <t t-out="(object.sudo()._otm_email_partner().name) or 'Customer'"/>,</p>
+    <p>To start your project we request the advance payment <b><t t-out="object.name"/></b> of <b><t t-out="object.currency_id.format(object.amount)"/></b>. Kindly share the payment reference once paid.</p>
+    <p>Kind regards,<br/><t t-out="object.env.company.name"/></p>
+</div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+        <record id="mail_project_confirmation" model="mail.template">
+            <field name="name">Lifecycle: Project Confirmation</field>
+            <field name="model_id" ref="project.model_project_project"/>
+            <field name="subject">Your project has started: {{ object.name }}</field>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; max-width: 600px;">
+    <p>Dear <t t-out="(object.sudo()._otm_email_partner().name) or 'Customer'"/>,</p>
+    <p>We are pleased to confirm that work on <b><t t-out="object.name"/></b> has started. Your Project Head is <t t-out="object.user_id.name or 'our team'"/>.</p>
+    <p>Kind regards,<br/><t t-out="object.env.company.name"/></p>
+</div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+        <record id="mail_training_confirmation" model="mail.template">
+            <field name="name">Lifecycle: Training Confirmation</field>
+            <field name="model_id" ref="model_otm_training"/>
+            <field name="subject">Training scheduled: {{ object.display_name }}</field>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; max-width: 600px;">
+    <p>Dear <t t-out="(object.sudo()._otm_email_partner().name) or 'Customer'"/>,</p>
+    <p>Your training session is scheduled for <b><t t-out="object.date"/></b> with <t t-out="object.trainer_id.name"/>. Please make sure the relevant team members are available.</p>
+    <p>Kind regards,<br/><t t-out="object.env.company.name"/></p>
+</div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+        <record id="mail_payment_30" model="mail.template">
+            <field name="name">Lifecycle: 30% Payment</field>
+            <field name="model_id" ref="model_otm_deal_payment"/>
+            <field name="subject">Payment due: {{ object.name }}</field>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; max-width: 600px;">
+    <p>Dear <t t-out="(object.sudo()._otm_email_partner().name) or 'Customer'"/>,</p>
+    <p>Your training is complete. The next installment <b><t t-out="object.name"/></b> of <b><t t-out="object.currency_id.format(object.amount)"/></b> is now due.</p>
+    <p>Kind regards,<br/><t t-out="object.env.company.name"/></p>
+</div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+        <record id="mail_payment_final" model="mail.template">
+            <field name="name">Lifecycle: Final Payment</field>
+            <field name="model_id" ref="model_otm_deal_payment"/>
+            <field name="subject">Final payment due: {{ object.name }}</field>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; max-width: 600px;">
+    <p>Dear <t t-out="(object.sudo()._otm_email_partner().name) or 'Customer'"/>,</p>
+    <p>Your project has been delivered. The final installment <b><t t-out="object.name"/></b> of <b><t t-out="object.currency_id.format(object.amount)"/></b> is now due. Thank you for your business.</p>
+    <p>Kind regards,<br/><t t-out="object.env.company.name"/></p>
+</div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+        <record id="mail_review_request" model="mail.template">
+            <field name="name">Lifecycle: Review Request</field>
+            <field name="model_id" ref="model_otm_customer_review"/>
+            <field name="subject">How did we do? {{ object.project_id.name }}</field>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; max-width: 600px;">
+    <p>Dear <t t-out="(object.sudo()._otm_email_partner().name) or 'Customer'"/>,</p>
+    <p>Thank you for choosing us. We would value your feedback on <b><t t-out="object.project_id.name"/></b> - service, quality and support. It only takes a minute.</p>
+    <p>Kind regards,<br/><t t-out="object.env.company.name"/></p>
+</div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+        <record id="mail_service_expiry" model="mail.template">
+            <field name="name">Lifecycle: Service Expiry</field>
+            <field name="model_id" ref="model_otm_client_service"/>
+            <field name="subject">Service expiry notice: {{ object.service_name }}</field>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; max-width: 600px;">
+    <p>Dear <t t-out="(object.sudo()._otm_email_partner().name) or 'Customer'"/>,</p>
+    <p>Your service <b><t t-out="object.service_name"/></b> expires on <b><t t-out="object.expiry_date"/></b>. Renewal amount: <t t-out="object.currency_id.format(object.renewal_amount or object.amount)"/>. Please contact us to renew without interruption.</p>
+    <p>Kind regards,<br/><t t-out="object.env.company.name"/></p>
+</div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+        <record id="mail_renewal" model="mail.template">
+            <field name="name">Lifecycle: Renewal</field>
+            <field name="model_id" ref="model_otm_service_renewal"/>
+            <field name="subject">Renewal estimate {{ object.name }}</field>
+            <field name="body_html" type="html">
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; max-width: 600px;">
+    <p>Dear <t t-out="(object.sudo()._otm_email_partner().name) or 'Customer'"/>,</p>
+    <p>Your renewal estimate <b><t t-out="object.name"/></b> for <t t-out="object.service_id.service_name"/> is <b><t t-out="object.currency_id.format(object.amount)"/></b>, extending the service to <t t-out="object.new_expiry_date"/>.</p>
+    <p>Kind regards,<br/><t t-out="object.env.company.name"/></p>
+</div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_estimate" model="ir.actions.report">
+        <field name="name">Estimate</field>
+        <field name="model">otm.estimate</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sales_project_lifecycle.report_estimate_document</field>
+        <field name="report_file">sales_project_lifecycle.report_estimate_document</field>
+        <field name="print_report_name">'Estimate-%s' % (object.estimate_number or object.id)</field>
+        <field name="paperformat_id" ref="paperformat_otm_agreement"/>
+        <field name="binding_model_id" ref="model_otm_estimate"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Customer facing: shows selling prices only, never the base or additional amounts. -->
+    <template id="report_estimate_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <t t-set="company" t-value="o.company_id or o.env.company"/>
+                    <div class="page">
+                        <h2>Estimate <span t-out="o.display_name"/></h2>
+                        <p>
+                            <strong>Customer:</strong> <span t-field="o.customer_id"/><br/>
+                            <strong>Date:</strong> <span t-field="o.estimate_date"/> ·
+                            <strong>Valid until:</strong> <span t-field="o.validity_date"/>
+                        </p>
+                        <table class="table table-sm">
+                            <thead><tr><th>Service</th><th class="text-end">Qty</th>
+                                <th class="text-end">Unit price</th><th class="text-end">Amount</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="o.line_ids" t-as="l">
+                                    <td><span t-out="l.description or l.service_id.name"/></td>
+                                    <td class="text-end"><span t-out="'%g' % l.quantity"/></td>
+                                    <td class="text-end"><span t-field="l.selling_unit_price"/></td>
+                                    <td class="text-end"><span t-field="l.subtotal"/></td>
+                                </tr>
+                                <tr t-foreach="o.customization_ids" t-as="c">
+                                    <td colspan="3"><span t-out="c.description"/> (customization)</td>
+                                    <td class="text-end"><span t-out="o.currency_id.format(c.calculated_amount)"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table class="table table-sm w-50 ms-auto">
+                            <tr t-if="o.discount_amount"><td>Discount</td>
+                                <td class="text-end">- <span t-field="o.discount_amount"/></td></tr>
+                            <tr t-if="o.tax_amount"><td>Tax</td><td class="text-end"><span t-field="o.tax_amount"/></td></tr>
+                            <tr><td><strong>Total</strong></td>
+                                <td class="text-end"><strong><span t-field="o.total_amount"/></strong></td></tr>
+                        </table>
+                        <p t-if="o.notes" t-out="o.notes"/>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

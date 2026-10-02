@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_otm_estimate_list" model="ir.ui.view">
+        <field name="name">otm.estimate.list</field>
+        <field name="model">otm.estimate</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="estimate_number"/>
+                <field name="revision_number"/>
+                <field name="lead_id"/>
+                <field name="customer_id"/>
+                <field name="validity_date"/>
+                <field name="total_amount" sum="Total"/>
+                <field name="status" widget="badge"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_otm_estimate_form" model="ir.ui.view">
+        <field name="name">otm.estimate.form</field>
+        <field name="model">otm.estimate</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit" type="object" string="Submit for Review" class="btn-primary"
+                            invisible="status != 'draft'"/>
+                    <button name="action_send" type="object" string="Send to Customer" class="btn-primary"
+                            invisible="status != 'internal_review'"/>
+                    <button name="action_negotiate" type="object" string="Negotiation"
+                            invisible="status != 'sent'"/>
+                    <button name="action_approve" type="object" string="Customer Approved" class="btn-primary"
+                            invisible="status not in ('sent','negotiation')"/>
+                    <button name="action_ask_reason" type="object" string="Reject"
+                            context="{'otm_reason_method': 'action_reject'}"
+                            invisible="status not in ('sent','negotiation')"/>
+                    <button name="action_ask_reason" type="object" string="Back to Draft"
+                            context="{'otm_reason_method': 'action_reset_draft'}"
+                            invisible="status != 'internal_review'"/>
+                    <button name="action_ask_reason" type="object" string="Revise"
+                            context="{'otm_reason_method': 'action_revise'}"
+                            invisible="status not in ('approved','sent','negotiation','rejected','expired')"/>
+                    <button name="action_ask_reason" type="object" string="Lock Deal" class="btn-primary"
+                            context="{'otm_reason_method': 'action_lock_deal', 'otm_reason_title': 'Lock Deal'}"
+                            groups="sales_project_lifecycle.group_sales_head"
+                            invisible="status != 'approved'"/>
+                    <button name="action_recalculate" type="object" string="Recalculate"
+                            invisible="status not in ('draft','internal_review')"/>
+                    <button name="action_request_discount" type="object" string="Request Discount Approval"
+                            invisible="status not in ('draft','internal_review') or not discount_approval_required or discount_state == 'pending'"/>
+                    <button name="action_approve_discount" type="object" string="Approve Discount" class="btn-primary"
+                            invisible="discount_state != 'pending'"/>
+                    <button name="action_ask_reason" type="object" string="Reject Discount"
+                            context="{'otm_reason_method': 'action_reject_discount'}"
+                            invisible="discount_state != 'pending'"/>
+                    <field name="status" widget="statusbar" options="{'clickable': False}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="estimate_number" placeholder="New"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="lead_id"/>
+                            <field name="customer_id"/>
+                            <field name="revision_number"/>
+                        </group>
+                        <group>
+                            <field name="estimate_date"/>
+                            <field name="validity_date"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="discount_approval_required" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Services" name="services">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="service_id"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="base_unit_price"/>
+                                    <field name="additional_amount" groups="sales_project_lifecycle.group_sales_head"/>
+                                    <field name="additional_percentage" groups="sales_project_lifecycle.group_sales_head"/>
+                                    <field name="selling_unit_price"/>
+                                    <field name="subtotal" sum="Total"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Customizations" name="customizations">
+                            <field name="customization_ids">
+                                <list editable="bottom">
+                                    <field name="description"/>
+                                    <field name="customization_type"/>
+                                    <field name="percentage" invisible="customization_type != 'percentage'"/>
+                                    <field name="fixed_amount" invisible="customization_type != 'fixed'"/>
+                                    <field name="calculated_amount" sum="Total"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Discount" name="discount">
+                            <group>
+                                <group>
+                                    <field name="discount_type" readonly="status not in ('draft','internal_review')"/>
+                                    <field name="discount_value" readonly="status not in ('draft','internal_review')"/>
+                                    <field name="discount_percent"/>
+                                    <field name="discount_reason" readonly="status not in ('draft','internal_review')"/>
+                                </group>
+                                <group>
+                                    <field name="discount_state"/>
+                                    <field name="discount_required_level"/>
+                                    <field name="discount_user_id"/>
+                                    <field name="discount_approved_by_id"/>
+                                    <field name="discount_approved_date"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Revisions" name="revisions">
+                            <field name="revision_ids" readonly="1">
+                                <list>
+                                    <field name="revision_number"/>
+                                    <field name="previous_amount"/>
+                                    <field name="new_amount"/>
+                                    <field name="reason"/>
+                                    <field name="changed_by_id"/>
+                                    <field name="changed_date"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes"><field name="notes"/></page>
+                    </notebook>
+                    <group class="oe_subtotal_footer">
+                        <field name="base_amount"/>
+                        <field name="additional_amount" groups="sales_project_lifecycle.group_sales_head"/>
+                        <field name="subtotal"/>
+                        <field name="customization_amount"/>
+                        <field name="discount_amount"/>
+                        <field name="tax_percent"/>
+                        <field name="tax_amount"/>
+                        <field name="total_amount" class="oe_subtotal_footer_separator"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_otm_estimate_search" model="ir.ui.view">
+        <field name="name">otm.estimate.search</field>
+        <field name="model">otm.estimate</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="estimate_number"/>
+                <field name="lead_id"/>
+                <field name="customer_id"/>
+                <filter name="pending_discount" string="Discount Pending" domain="[('discount_state','=','pending')]"/>
+                <group>
+                    <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_otm_estimate" model="ir.actions.act_window">
+        <field name="name">Estimates</field>
+        <field name="res_model">otm.estimate</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

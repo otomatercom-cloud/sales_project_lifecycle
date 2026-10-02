@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Demo users (Phase 1 security test users). Password = login. -->
+    <record id="demo_user_head_a" model="res.users" context="{'no_reset_password': True}">
+        <field name="name">Sales Head A</field>
+        <field name="login">head_a</field>
+        <field name="password">head_a</field>
+        <field name="group_ids" eval="[(6, 0, [ref('base.group_user'), ref('group_sales_head')])]"/>
+    </record>
+    <record id="demo_user_exec_a1" model="res.users" context="{'no_reset_password': True}">
+        <field name="name">Executive A1</field>
+        <field name="login">exec_a1</field>
+        <field name="password">exec_a1</field>
+        <field name="group_ids" eval="[(6, 0, [ref('base.group_user'), ref('group_sales_executive')])]"/>
+    </record>
+    <record id="demo_user_exec_a2" model="res.users" context="{'no_reset_password': True}">
+        <field name="name">Executive A2</field>
+        <field name="login">exec_a2</field>
+        <field name="password">exec_a2</field>
+        <field name="group_ids" eval="[(6, 0, [ref('base.group_user'), ref('group_sales_executive')])]"/>
+    </record>
+    <record id="demo_user_head_b" model="res.users" context="{'no_reset_password': True}">
+        <field name="name">Sales Head B</field>
+        <field name="login">head_b</field>
+        <field name="password">head_b</field>
+        <field name="group_ids" eval="[(6, 0, [ref('base.group_user'), ref('group_sales_head')])]"/>
+    </record>
+    <record id="demo_user_exec_b1" model="res.users" context="{'no_reset_password': True}">
+        <field name="name">Executive B1</field>
+        <field name="login">exec_b1</field>
+        <field name="password">exec_b1</field>
+        <field name="group_ids" eval="[(6, 0, [ref('base.group_user'), ref('group_sales_executive')])]"/>
+    </record>
+
+    <record id="demo_team_a" model="otm.sales.team">
+        <field name="name">Odoo Solutions</field>
+        <field name="code">TEAM-A</field>
+        <field name="head_id" ref="demo_user_head_a"/>
+        <field name="member_ids" eval="[(6, 0, [ref('demo_user_exec_a1'), ref('demo_user_exec_a2')])]"/>
+    </record>
+    <record id="demo_team_b" model="otm.sales.team">
+        <field name="name">Digital Marketing</field>
+        <field name="code">TEAM-B</field>
+        <field name="head_id" ref="demo_user_head_b"/>
+        <field name="member_ids" eval="[(6, 0, [ref('demo_user_exec_b1')])]"/>
+    </record>
+
+    <record id="demo_service_crm" model="otm.service">
+        <field name="name">Odoo CRM</field><field name="code">CRM</field><field name="service_type">module</field><field name="base_amount">20000</field>
+    </record>
+    <record id="demo_service_hrms" model="otm.service">
+        <field name="name">HRMS</field><field name="code">HRMS</field><field name="service_type">module</field><field name="base_amount">30000</field>
+    </record>
+    <record id="demo_service_website" model="otm.service">
+        <field name="name">Website</field><field name="code">WEB</field><field name="service_type">website</field><field name="base_amount">25000</field>
+    </record>
+</odoo>

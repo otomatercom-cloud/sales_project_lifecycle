@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_otm_lead" model="ir.sequence">
+        <field name="name">Lead</field>
+        <field name="code">otm.lead</field>
+        <field name="prefix">LD</field>
+        <field name="padding">5</field>
+    </record>
+    <record id="seq_otm_demo" model="ir.sequence">
+        <field name="name">Demo</field>
+        <field name="code">otm.demo</field>
+        <field name="prefix">DM</field>
+        <field name="padding">5</field>
+    </record>
+    <record id="seq_otm_estimate" model="ir.sequence">
+        <field name="name">Estimate</field>
+        <field name="code">otm.estimate</field>
+        <field name="prefix">EST</field>
+        <field name="padding">5</field>
+    </record>
+    <record id="seq_otm_deal" model="ir.sequence">
+        <field name="name">Deal</field><field name="code">otm.deal</field>
+        <field name="prefix">DL</field><field name="padding">5</field>
+    </record>
+    <record id="seq_otm_commission" model="ir.sequence">
+        <field name="name">Commission</field><field name="code">otm.commission</field>
+        <field name="prefix">CM</field><field name="padding">5</field>
+    </record>
+    <record id="seq_otm_agreement" model="ir.sequence">
+        <field name="name">Customer Agreement</field><field name="code">otm.agreement</field>
+        <field name="prefix">AG</field><field name="padding">5</field>
+    </record>
+    <record id="seq_otm_qc" model="ir.sequence"><field name="name">QC Round</field><field name="code">otm.qc</field><field name="prefix">QC</field><field name="padding">5</field></record>
+    <record id="seq_otm_qc_issue" model="ir.sequence"><field name="name">QC Issue</field><field name="code">otm.qc.issue</field><field name="prefix">IS</field><field name="padding">5</field></record>
+    <record id="seq_otm_deployment" model="ir.sequence"><field name="name">Deployment</field><field name="code">otm.deployment</field><field name="prefix">DP</field><field name="padding">5</field></record>
+    <record id="seq_otm_training" model="ir.sequence"><field name="name">Training</field><field name="code">otm.training</field><field name="prefix">TR</field><field name="padding">5</field></record>
+    <record id="seq_otm_review" model="ir.sequence"><field name="name">Customer Review</field><field name="code">otm.customer.review</field><field name="prefix">RV</field><field name="padding">5</field></record>
+    <record id="seq_otm_client_service" model="ir.sequence"><field name="name">Client Service</field><field name="code">otm.client.service</field><field name="prefix">CS</field><field name="padding">5</field></record>
+    <record id="seq_otm_service_renewal" model="ir.sequence"><field name="name">Service Renewal</field><field name="code">otm.service.renewal</field><field name="prefix">RN</field><field name="padding">5</field></record>
+</odoo>

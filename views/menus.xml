@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_otm_root" name="Sales &amp; Project Lifecycle"
+              web_icon="sales_project_lifecycle,static/description/icon.png"
+              groups="group_sales_executive,group_finance,group_developer,group_qc,group_project_head" sequence="40"/>
+
+    <menuitem id="menu_otm_sales" name="Sales" parent="menu_otm_root"
+              groups="group_sales_executive,group_finance" sequence="10"/>
+    <menuitem id="menu_otm_projects" name="Projects" parent="menu_otm_root" sequence="20"/>
+    <menuitem id="menu_otm_project_list" name="Projects" parent="menu_otm_projects"
+              action="action_otm_project" sequence="10"/>
+    <menuitem id="menu_otm_leads" name="Leads" parent="menu_otm_sales"
+              action="action_otm_lead" sequence="10"/>
+    <menuitem id="menu_otm_demos" name="Demos" parent="menu_otm_sales"
+              action="action_otm_demo" sequence="20"/>
+    <menuitem id="menu_otm_estimates" name="Estimates" parent="menu_otm_sales"
+              action="action_otm_estimate" sequence="30"/>
+    <menuitem id="menu_otm_deals" name="Deals" parent="menu_otm_sales"
+              action="action_otm_deal" sequence="40"/>
+
+    <menuitem id="menu_otm_agreements" name="Agreements" parent="menu_otm_sales"
+              action="action_otm_agreement" sequence="50"/>
+    <menuitem id="menu_otm_reviews" name="Customer Reviews" parent="menu_otm_sales"
+              action="action_otm_review" sequence="60"/>
+    <menuitem id="menu_otm_finance" name="Finance" parent="menu_otm_root"
+              groups="group_finance,group_sales_head" sequence="25"/>
+    <menuitem id="menu_otm_payments" name="Payments" parent="menu_otm_finance"
+              action="action_otm_deal_payment" sequence="10"/>
+
+    <menuitem id="menu_otm_commission_root" name="Commission &amp; Wallet" parent="menu_otm_root"
+              groups="group_sales_head,group_finance" sequence="30"/>
+    <menuitem id="menu_otm_commissions" name="Commissions" parent="menu_otm_commission_root"
+              action="action_otm_commission" sequence="10"/>
+    <menuitem id="menu_otm_wallets" name="Wallets" parent="menu_otm_commission_root"
+              action="action_otm_wallet" sequence="20"/>
+    <menuitem id="menu_otm_wallet_txns" name="Wallet Transactions" parent="menu_otm_commission_root"
+              action="action_otm_wallet_txn" sequence="30"/>
+
+    <menuitem id="menu_otm_qc" name="QC" parent="menu_otm_projects" action="action_otm_qc" sequence="20"
+              groups="group_qc,group_project_head"/>
+    <menuitem id="menu_otm_issues" name="QC Issues" parent="menu_otm_projects" action="action_otm_issue" sequence="30"
+              groups="group_qc,group_project_head,group_developer"/>
+    <menuitem id="menu_otm_deployments" name="Deployments" parent="menu_otm_projects" action="action_otm_deployment" sequence="40"
+              groups="group_project_head"/>
+    <menuitem id="menu_otm_trainings" name="Training" parent="menu_otm_projects" action="action_otm_training" sequence="45"
+              groups="group_project_head,group_developer"/>
+    <menuitem id="menu_otm_servers" name="Client Servers" parent="menu_otm_projects" action="action_otm_server" sequence="50"
+              groups="group_project_head"/>
+
+    <menuitem id="menu_otm_clients" name="Clients" parent="menu_otm_root" sequence="35"
+              groups="group_sales_executive,group_finance,group_project_head,group_developer"/>
+    <menuitem id="menu_otm_cservices" name="Services" parent="menu_otm_clients" action="action_otm_cservice" sequence="10"/>
+    <menuitem id="menu_otm_renewals" name="Renewals" parent="menu_otm_clients" action="action_otm_renewal" sequence="20"/>
+    <menuitem id="menu_otm_integrations" name="Integrations" parent="menu_otm_clients" action="action_otm_integration" sequence="30"/>
+    <menuitem id="menu_otm_config" name="Configuration" parent="menu_otm_root"
+              groups="group_lifecycle_admin" sequence="90"/>
+    <menuitem id="menu_otm_config_teams" name="Sales Teams" parent="menu_otm_config"
+              action="action_otm_sales_team" sequence="10"/>
+    <menuitem id="menu_otm_config_services" name="Services / Modules" parent="menu_otm_config"
+              action="action_otm_service" sequence="20"/>
+    <menuitem id="menu_otm_config_commission_rules" name="Commission Rules" parent="menu_otm_config"
+              action="action_otm_commission_rule" sequence="25"/>
+    <menuitem id="menu_otm_config_schedules" name="Payment Schedules" parent="menu_otm_config"
+              action="action_otm_payment_schedule" sequence="26"/>
+    <menuitem id="menu_otm_config_stages" name="Project Stages" parent="menu_otm_config"
+              action="action_otm_project_stage" sequence="27"/>
+    <menuitem id="menu_otm_config_sources" name="Lead Sources" parent="menu_otm_config"
+              action="action_otm_lead_source" sequence="30"/>
+    <menuitem id="menu_otm_config_history" name="Transition History" parent="menu_otm_config"
+              action="action_otm_transition_log" sequence="90"/>
+</odoo>

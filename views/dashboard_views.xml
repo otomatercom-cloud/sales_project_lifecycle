@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_otm_dashboard" model="ir.actions.client">
+        <field name="name">Dashboard</field>
+        <field name="tag">otm_dashboard</field>
+    </record>
+    <record id="action_otm_project_board" model="ir.actions.client">
+        <field name="name">Project Board</field>
+        <field name="tag">otm_project_board</field>
+    </record>
+    <record id="action_otm_customer360" model="ir.actions.client">
+        <field name="name">Customer 360</field>
+        <field name="tag">otm_customer360</field>
+    </record>
+
+    <menuitem id="menu_otm_dashboard" name="Dashboard" parent="menu_otm_root" action="action_otm_dashboard" sequence="1"/>
+    <menuitem id="menu_otm_project_board" name="Project Board" parent="menu_otm_projects"
+              action="action_otm_project_board" sequence="5"
+              groups="group_project_head,group_lifecycle_admin"/>
+    <menuitem id="menu_otm_customer360" name="Customer 360" parent="menu_otm_clients"
+              action="action_otm_customer360" sequence="5"/>
+
+    <!-- stage indicator on lead and project forms -->
+    <record id="view_otm_lead_form_tracker" model="ir.ui.view">
+        <field name="name">otm.lead.form.tracker</field>
+        <field name="model">otm.lead</field>
+        <field name="inherit_id" ref="view_otm_lead_form"/>
+        <field name="arch" type="xml">
+            <sheet position="before">
+                <div class="px-3"><field name="otm_stage_tracker" widget="otm_stage_tracker" nolabel="1"/></div>
+            </sheet>
+        </field>
+    </record>
+    <record id="view_otm_project_form_tracker" model="ir.ui.view">
+        <field name="name">project.project.form.otm.tracker</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="view_otm_project_form"/>
+        <field name="arch" type="xml">
+            <sheet position="before">
+                <div class="px-3" invisible="not otm_stage_tracker">
+                    <field name="otm_stage_tracker" widget="otm_stage_tracker" nolabel="1"/>
+                </div>
+            </sheet>
+        </field>
+    </record>
+
+    <!-- Customer 360 button on the contact form -->
+    <record id="view_partner_form_otm360" model="ir.ui.view">
+        <field name="name">res.partner.form.otm360</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_otm_customer360" type="object" class="oe_stat_button" icon="fa-address-card"
+                        string="Customer 360"
+                        groups="sales_project_lifecycle.group_sales_executive,sales_project_lifecycle.group_finance,sales_project_lifecycle.group_project_head"/>
+            </div>
+        </field>
+    </record>
+</odoo>

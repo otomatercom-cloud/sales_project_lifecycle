@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_otm_agreement" model="report.paperformat">
+        <field name="name">OTM Agreement A4</field>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">20</field>
+        <field name="margin_bottom">18</field>
+        <field name="margin_left">15</field>
+        <field name="margin_right">15</field>
+    </record>
+
+    <record id="action_report_agreement" model="ir.actions.report">
+        <field name="name">Customer Agreement</field>
+        <field name="model">otm.customer.agreement</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sales_project_lifecycle.report_agreement_document</field>
+        <field name="report_file">sales_project_lifecycle.report_agreement_document</field>
+        <field name="print_report_name">'Agreement-%s' % object.agreement_number</field>
+        <field name="paperformat_id" ref="paperformat_otm_agreement"/>
+        <field name="binding_model_id" ref="model_otm_customer_agreement"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_agreement_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <t t-set="company" t-value="o.company_id or o.env.company"/>
+                    <div class="page">
+                        <h2 style="text-align:center;">Service Agreement</h2>
+                        <p style="text-align:center;">
+                            Agreement No. <strong t-field="o.agreement_number"/> ·
+                            Date <span t-field="o.agreement_date"/>
+                        </p>
+
+                        <h4>1. Parties</h4>
+                        <table class="table table-sm">
+                            <tr>
+                                <td style="width:50%;"><strong>Service Provider</strong><br/>
+                                    <span t-field="company.name"/><br/>
+                                    <span t-if="company.street" t-field="company.street"/>
+                                    <span t-if="company.city"> <t t-esc="company.city"/></span>
+                                    <br/><span t-if="company.email" t-field="company.email"/>
+                                    <span t-if="company.phone"> · <t t-esc="company.phone"/></span>
+                                </td>
+                                <td><strong>Customer</strong><br/>
+                                    <span t-field="o.customer_id.name"/><br/>
+                                    <span t-if="o.customer_id.street" t-field="o.customer_id.street"/>
+                                    <span t-if="o.customer_id.city"> <t t-esc="o.customer_id.city"/></span>
+                                    <br/><span t-if="o.customer_id.email" t-field="o.customer_id.email"/>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <h4>2. Project</h4>
+                        <p><span t-field="o.lead_id.name"/> (Deal <span t-field="o.deal_id.name"/>)</p>
+
+                        <h4>3. Scope of Work</h4>
+                        <p style="white-space:pre-wrap;"><span t-field="o.scope"/></p>
+
+                        <h4>4. Deliverables</h4>
+                        <p style="white-space:pre-wrap;"><span t-field="o.deliverables"/></p>
+
+                        <h4>5. Approved Services</h4>
+                        <p style="white-space:pre-wrap;"><span t-field="o.approved_services"/></p>
+
+                        <t t-if="o.approved_customizations">
+                            <h4>6. Customizations</h4>
+                            <p style="white-space:pre-wrap;"><span t-field="o.approved_customizations"/></p>
+                        </t>
+
+                        <h4>7. Commercial Terms</h4>
+                        <p>Total agreed amount:
+                            <strong t-field="o.final_amount"
+                                    t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></p>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr><th>#</th><th>Installment</th><th class="text-end">%</th><th class="text-end">Amount</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="o.payment_ids.sorted('sequence')" t-as="p">
+                                    <td><t t-esc="p_index + 1"/></td>
+                                    <td><span t-field="p.name"/></td>
+                                    <td class="text-end"><t t-esc="'%.2f' % p.percentage"/>%</td>
+                                    <td class="text-end"><span t-field="p.amount"
+                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4>8. Project Timeline</h4>
+                        <p><t t-if="o.timeline_days"><t t-esc="o.timeline_days"/> working days from the project start date.</t>
+                           <t t-else="">To be confirmed at project kick-off.</t></p>
+
+                        <t t-if="o.terms">
+                            <h4>9. Terms and Conditions</h4>
+                            <p style="white-space:pre-wrap;"><span t-field="o.terms"/></p>
+                        </t>
+
+                        <h4>Acceptance</h4>
+                        <table class="table table-sm" style="margin-top:40px;">
+                            <tr>
+                                <td style="width:50%; height:80px; vertical-align:bottom;">
+                                    For <t t-esc="company.name"/><br/>Signature / Date
+                                </td>
+                                <td style="vertical-align:bottom;">
+                                    For <t t-esc="o.customer_id.name"/><br/>Signature / Date
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Stage template (configuration) -->
+    <record id="view_otm_project_stage_list" model="ir.ui.view">
+        <field name="name">otm.project.stage.list</field>
+        <field name="model">otm.project.stage</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="duration_days"/>
+                <field name="responsible_role"/>
+                <field name="required"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_otm_project_stage" model="ir.actions.act_window">
+        <field name="name">Project Stages</field>
+        <field name="res_model">otm.project.stage</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- Lifecycle project -->
+    <record id="view_otm_project_list" model="ir.ui.view">
+        <field name="name">otm.project.list</field>
+        <field name="model">project.project</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="otm_delay_days &gt; 0" decoration-muted="otm_state in ('closed','cancelled')">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="otm_sales_team_id"/>
+                <field name="user_id" string="Project Head"/>
+                <field name="otm_current_stage_id"/>
+                <field name="otm_progress" widget="progressbar"/>
+                <field name="otm_delay_days"/>
+                <field name="otm_planned_end"/>
+                <field name="otm_state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_otm_project_form" model="ir.ui.view">
+        <field name="name">otm.project.lifecycle.form</field>
+        <field name="model">project.project</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <form create="0">
+                <header>
+                    <button name="action_otm_start" type="object" string="Start Project" class="btn-primary"
+                            invisible="otm_state != 'planning'"
+                            groups="sales_project_lifecycle.group_project_head"/>
+                    <button name="action_final_delivery" type="object" string="Final Delivery" class="btn-primary"
+                            invisible="otm_state != 'in_progress'"
+                            groups="sales_project_lifecycle.group_project_head"/>
+                    <button name="action_close" type="object" string="Close Project" class="btn-primary"
+                            invisible="otm_state != 'delivered'"
+                            groups="sales_project_lifecycle.group_project_head"/>
+                    <button name="action_ask_reason" type="object" string="Put On Hold"
+                            context="{'otm_reason_method': 'action_hold'}"
+                            invisible="otm_state != 'in_progress'"
+                            groups="sales_project_lifecycle.group_project_head"/>
+                    <button name="action_otm_resume" type="object" string="Resume"
+                            invisible="otm_state != 'on_hold'"
+                            groups="sales_project_lifecycle.group_project_head"/>
+                    <button name="action_ask_reason" type="object" string="Cancel Project"
+                            context="{'otm_reason_method': 'action_cancel'}"
+                            invisible="otm_state not in ('planning','in_progress','on_hold')"
+                            groups="sales_project_lifecycle.group_project_head"/>
+                    <field name="otm_state" widget="statusbar" options="{'clickable': False}"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_otm_open_reviews" type="object" class="oe_stat_button" icon="fa-star"
+                                string="Reviews"
+                                groups="sales_project_lifecycle.group_sales_executive,sales_project_lifecycle.group_project_head"/>
+                        <button name="action_otm_open_history" type="object" class="oe_stat_button"
+                                icon="fa-history" string="History"
+                                groups="sales_project_lifecycle.group_sales_executive,sales_project_lifecycle.group_project_head"/>
+                    </div>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group string="Project">
+                            <field name="partner_id"/>
+                            <field name="otm_is_lifecycle" invisible="1"/>
+                            <field name="otm_start_date" string="Project Start Date"/>
+                            <field name="otm_planned_end"/>
+                            <field name="otm_current_stage_id"/>
+                            <field name="otm_progress" widget="progressbar"/>
+                            <field name="otm_delay_days"/>
+                            <field name="otm_delivered_date"/>
+                            <field name="otm_closed_date"/>
+                            <field name="otm_closed_by_id"/>
+                        </group>
+                        <group string="Sales">
+                            <field name="otm_sales_team_id"/>
+                            <field name="otm_sales_head_id"/>
+                            <field name="otm_salesperson_id"/>
+                            <field name="otm_deal_id"/>
+                            <field name="otm_agreement_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Team" name="team">
+                            <group>
+                                <group>
+                                    <field name="user_id" string="Project Head"/>
+                                    <field name="otm_developer_ids" widget="many2many_tags"/>
+                                    <field name="otm_qc_user_id"/>
+                                </group>
+                                <group>
+                                    <field name="otm_deploy_user_id"/>
+                                    <field name="otm_trainer_id"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Stages" name="stages">
+                            <field name="otm_stage_ids">
+                                <list editable="bottom" decoration-danger="delay_days &gt; 0"
+                                      decoration-success="state == 'done'">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="responsible_role"/>
+                                    <field name="responsible_user_id"/>
+                                    <field name="duration_days"/>
+                                    <field name="planned_start"/>
+                                    <field name="planned_deadline"/>
+                                    <field name="actual_start" optional="show"/>
+                                    <field name="actual_end" optional="show"/>
+                                    <field name="delay_days"/>
+                                    <field name="required"/>
+                                    <field name="state" widget="badge"/>
+                                    <button name="action_start" type="object" string="Start" icon="fa-play"
+                                            invisible="state != 'pending'"
+                                            groups="sales_project_lifecycle.group_project_head"/>
+                                    <button name="action_complete" type="object" string="Complete" icon="fa-check"
+                                            invisible="state != 'in_progress'"
+                                            groups="sales_project_lifecycle.group_project_head"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Approved Scope" name="scope">
+                            <group>
+                                <field name="otm_scope"/>
+                                <field name="otm_deliverables"/>
+                                <field name="otm_requirements"/>
+                                <field name="otm_services"/>
+                                <field name="otm_customizations"/>
+                                <field name="otm_technical_requirements"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_otm_project_search" model="ir.ui.view">
+        <field name="name">otm.project.lifecycle.search</field>
+        <field name="model">project.project</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="otm_sales_team_id"/>
+                <filter name="running" string="In Progress" domain="[('otm_state','=','in_progress')]"/>
+                <group>
+                    <filter name="group_state" string="Status" context="{'group_by': 'otm_state'}"/>
+                    <filter name="group_team" string="Sales Team" context="{'group_by': 'otm_sales_team_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_otm_project" model="ir.actions.act_window">
+        <field name="name">Projects</field>
+        <field name="res_model">project.project</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('otm_is_lifecycle', '=', True)]</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_otm_project_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_otm_project_form')})]"/>
+        <field name="search_view_id" ref="view_otm_project_search"/>
+    </record>
+
+    <!-- Task: lifecycle information for developers -->
+    <record id="view_task_form_otm" model="ir.ui.view">
+        <field name="name">project.task.form.otm</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <field name="otm_lifecycle" invisible="1"/>
+                <button name="action_otm_start" type="object" string="Start Work" class="btn-primary"
+                        invisible="not otm_lifecycle or otm_dev_status != 'not_started'"/>
+                <button name="action_otm_submit" type="object" string="Submit for Review" class="btn-primary"
+                        invisible="not otm_lifecycle or otm_dev_status != 'in_progress'"/>
+                <button name="action_otm_complete" type="object" string="Accept Work" class="btn-primary"
+                        groups="sales_project_lifecycle.group_project_head"
+                        invisible="not otm_lifecycle or otm_dev_status != 'submitted'"/>
+                <button name="action_ask_reason" type="object" string="Return to Developer"
+                        context="{'otm_reason_method': 'action_return'}"
+                        groups="sales_project_lifecycle.group_project_head"
+                        invisible="not otm_lifecycle or otm_dev_status != 'submitted'"/>
+                <field name="otm_dev_status" widget="badge" invisible="not otm_lifecycle"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Delivery Brief" name="otm_brief" invisible="not otm_lifecycle">
+                    <group>
+                        <field name="otm_stage_line_id"/>
+                        <field name="otm_progress"/>
+                        <field name="otm_acceptance_criteria"/>
+                        <field name="otm_technical_notes"/>
+                        <field name="otm_scope"/>
+                        <field name="otm_requirements"/>
+                        <field name="otm_customizations"/>
+                        <field name="otm_technical_requirements"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_users_form_otm_sales" model="ir.ui.view">
+        <field name="name">res.users.form.otm.sales</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='access_rights']" position="after">
+                <page string="Sales Teams" name="page_otm_sales_teams">
+                    <group name="otm_sales">
+                        <field name="otm_sales_role"/>
+                        <field name="otm_primary_sales_team_id" domain="[('id', 'in', otm_sales_team_ids)]"/>
+                        <field name="otm_sales_team_ids" widget="many2many_tags"/>
+                    </group>
+                    <p class="text-muted">
+                        Team membership is managed on the Sales Team (Sales Head and Sales Executives).
+                    </p>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

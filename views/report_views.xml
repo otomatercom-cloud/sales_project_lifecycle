@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================= search views with report filters ================= -->
+    <record id="view_otm_lead_report_search" model="ir.ui.view">
+        <field name="name">otm.lead.report.search</field>
+        <field name="model">otm.lead</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="f_hot" string="Hot" domain="[('lead_quality', '=', 'hot')]"/>
+                <filter name="f_warm" string="Warm" domain="[('lead_quality', '=', 'warm')]"/>
+                <filter name="f_cold" string="Cold" domain="[('lead_quality', '=', 'cold')]"/>
+                <separator/>
+                <filter name="f_won" string="Won" domain="[('stage', 'in', ('deal_locked', 'agreement', 'advance_pending', 'project', 'won'))]"/>
+                <filter name="f_lost" string="Lost" domain="[('stage', '=', 'lost')]"/>
+                <group>
+                    <filter name="g_team" string="Sales Team" context="{'group_by': 'sales_team_id'}"/>
+                    <filter name="g_head" string="Sales Head" context="{'group_by': 'sales_head_id'}"/>
+                    <filter name="g_exec" string="Executive" context="{'group_by': 'salesperson_id'}"/>
+                    <filter name="g_source" string="Source" context="{'group_by': 'lead_source_id'}"/>
+                    <filter name="g_quality" string="Hot / Warm / Cold" context="{'group_by': 'lead_quality'}"/>
+                    <filter name="g_stage" string="Stage" context="{'group_by': 'stage'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_otm_estimate_report_search" model="ir.ui.view">
+        <field name="name">otm.estimate.report.search</field>
+        <field name="model">otm.estimate</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter name="f_open" string="Open" domain="[('status', 'in', ('draft', 'internal_review', 'sent', 'negotiation'))]"/>
+                <filter name="f_approved" string="Approved" domain="[('status', '=', 'approved')]"/>
+                <group>
+                    <filter name="g_team" string="Sales Team" context="{'group_by': 'sales_team_id'}"/>
+                    <filter name="g_exec" string="Executive" context="{'group_by': 'salesperson_id'}"/>
+                    <filter name="g_status" string="Status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_otm_commission_report_search" model="ir.ui.view">
+        <field name="name">otm.sales.commission.report.search</field>
+        <field name="model">otm.sales.commission</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter name="f_pending" string="Pending" domain="[('status', '=', 'pending')]"/>
+                <filter name="f_earned" string="Earned" domain="[('status', 'in', ('earned', 'approved'))]"/>
+                <filter name="f_paid" string="Paid" domain="[('status', '=', 'paid')]"/>
+                <group>
+                    <filter name="g_head" string="Sales Head" context="{'group_by': 'sales_head_id'}"/>
+                    <filter name="g_team" string="Sales Team" context="{'group_by': 'sales_team_id'}"/>
+                    <filter name="g_status" string="Status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_otm_payment_report_search" model="ir.ui.view">
+        <field name="name">otm.deal.payment.report.search</field>
+        <field name="model">otm.deal.payment</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter name="f_adv" string="Advance Pending" domain="[('trigger', '=', 'advance'), ('status', 'in', ('pending', 'due', 'requested'))]"/>
+                <filter name="f_30" string="30% Pending" domain="[('trigger', '=', 'after_training'), ('status', 'in', ('pending', 'due', 'requested'))]"/>
+                <filter name="f_final" string="Final Payment Pending" domain="[('trigger', '=', 'final_delivery'), ('status', 'in', ('pending', 'due', 'requested'))]"/>
+                <filter name="f_out" string="Outstanding" domain="[('status', 'in', ('due', 'requested'))]"/>
+                <filter name="f_recv" string="Received" domain="[('status', '=', 'received')]"/>
+                <group>
+                    <filter name="g_team" string="Sales Team" context="{'group_by': 'sales_team_id'}"/>
+                    <filter name="g_trigger" string="Installment" context="{'group_by': 'trigger'}"/>
+                    <filter name="g_status" string="Status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_otm_stage_line_report_search" model="ir.ui.view">
+        <field name="name">otm.project.stage.line.report.search</field>
+        <field name="model">otm.project.stage.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="f_delayed" string="Delayed"
+                        domain="[('state', 'in', ('pending', 'in_progress')), ('planned_deadline', '&lt;', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="f_progress" string="In Progress" domain="[('state', '=', 'in_progress')]"/>
+                <group>
+                    <filter name="g_project" string="Project" context="{'group_by': 'project_id'}"/>
+                    <filter name="g_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_otm_cservice_report_search" model="ir.ui.view">
+        <field name="name">otm.client.service.report.search</field>
+        <field name="model">otm.client.service</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter name="f_active" string="Active" domain="[('status', 'in', ('active', 'renewed'))]"/>
+                <filter name="f_expiring" string="Expiring" domain="[('status', '=', 'expiring')]"/>
+                <filter name="f_expired" string="Expired" domain="[('status', '=', 'expired')]"/>
+                <filter name="f_recurring" string="Recurring" domain="[('billing_type', '!=', 'one_time'), ('status', '!=', 'cancelled')]"/>
+                <group>
+                    <filter name="g_kind" string="Type" context="{'group_by': 'service_kind'}"/>
+                    <filter name="g_status" string="Status" context="{'group_by': 'status'}"/>
+                    <filter name="g_billing" string="Billing" context="{'group_by': 'billing_type'}"/>
+                    <filter name="g_team" string="Sales Team" context="{'group_by': 'sales_team_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ================= graph / pivot views ================= -->
+    <record id="view_otm_lead_graph" model="ir.ui.view">
+        <field name="name">otm.lead.graph</field>
+        <field name="model">otm.lead</field>
+        <field name="arch" type="xml"><graph string="Leads" type="bar"><field name="stage"/><field name="expected_budget" type="measure"/></graph></field>
+    </record>
+    <record id="view_otm_lead_pivot" model="ir.ui.view">
+        <field name="name">otm.lead.pivot</field>
+        <field name="model">otm.lead</field>
+        <field name="arch" type="xml"><pivot string="Leads"><field name="sales_team_id" type="row"/><field name="stage" type="col"/><field name="expected_budget" type="measure"/></pivot></field>
+    </record>
+    <record id="view_otm_estimate_graph" model="ir.ui.view">
+        <field name="name">otm.estimate.graph</field>
+        <field name="model">otm.estimate</field>
+        <field name="arch" type="xml"><graph string="Estimates" type="bar"><field name="sales_team_id"/><field name="total_amount" type="measure"/></graph></field>
+    </record>
+    <record id="view_otm_estimate_pivot" model="ir.ui.view">
+        <field name="name">otm.estimate.pivot</field>
+        <field name="model">otm.estimate</field>
+        <field name="arch" type="xml"><pivot string="Estimates"><field name="sales_team_id" type="row"/><field name="status" type="col"/><field name="total_amount" type="measure"/></pivot></field>
+    </record>
+    <record id="view_otm_commission_graph" model="ir.ui.view">
+        <field name="name">otm.sales.commission.graph</field>
+        <field name="model">otm.sales.commission</field>
+        <field name="arch" type="xml"><graph string="Commission" type="bar"><field name="sales_head_id"/><field name="commission_amount" type="measure"/></graph></field>
+    </record>
+    <record id="view_otm_commission_pivot" model="ir.ui.view">
+        <field name="name">otm.sales.commission.pivot</field>
+        <field name="model">otm.sales.commission</field>
+        <field name="arch" type="xml"><pivot string="Commission"><field name="sales_head_id" type="row"/><field name="status" type="col"/><field name="commission_amount" type="measure"/></pivot></field>
+    </record>
+    <record id="view_otm_payment_graph" model="ir.ui.view">
+        <field name="name">otm.deal.payment.graph</field>
+        <field name="model">otm.deal.payment</field>
+        <field name="arch" type="xml"><graph string="Payments" type="bar"><field name="trigger"/><field name="amount" type="measure"/></graph></field>
+    </record>
+    <record id="view_otm_payment_pivot" model="ir.ui.view">
+        <field name="name">otm.deal.payment.pivot</field>
+        <field name="model">otm.deal.payment</field>
+        <field name="arch" type="xml"><pivot string="Payments"><field name="trigger" type="row"/><field name="status" type="col"/><field name="amount" type="measure"/></pivot></field>
+    </record>
+    <record id="view_otm_cservice_graph" model="ir.ui.view">
+        <field name="name">otm.client.service.graph</field>
+        <field name="model">otm.client.service</field>
+        <field name="arch" type="xml"><graph string="Services" type="bar"><field name="service_kind"/><field name="amount" type="measure"/></graph></field>
+    </record>
+    <record id="view_otm_cservice_pivot" model="ir.ui.view">
+        <field name="name">otm.client.service.pivot</field>
+        <field name="model">otm.client.service</field>
+        <field name="arch" type="xml"><pivot string="Services"><field name="service_kind" type="row"/><field name="status" type="col"/><field name="amount" type="measure"/><field name="renewal_amount" type="measure"/></pivot></field>
+    </record>
+    <record id="view_otm_project_pivot" model="ir.ui.view">
+        <field name="name">project.project.pivot.otm</field>
+        <field name="model">project.project</field>
+        <field name="arch" type="xml"><pivot string="Projects"><field name="otm_sales_team_id" type="row"/><field name="otm_state" type="col"/></pivot></field>
+    </record>
+    <record id="view_otm_project_graph" model="ir.ui.view">
+        <field name="name">project.project.graph.otm</field>
+        <field name="model">project.project</field>
+        <field name="arch" type="xml"><graph string="Projects" type="bar"><field name="otm_state"/></graph></field>
+    </record>
+    <record id="view_otm_issue_pivot" model="ir.ui.view">
+        <field name="name">otm.qc.issue.pivot</field>
+        <field name="model">otm.qc.issue</field>
+        <field name="arch" type="xml"><pivot string="QC Issues"><field name="project_id" type="row"/><field name="status" type="col"/></pivot></field>
+    </record>
+    <record id="view_otm_qc_graph" model="ir.ui.view">
+        <field name="name">otm.qc.graph</field>
+        <field name="model">otm.qc</field>
+        <field name="arch" type="xml"><graph string="QC rounds" type="bar"><field name="status"/></graph></field>
+    </record>
+    <record id="view_otm_task_pivot" model="ir.ui.view">
+        <field name="name">project.task.pivot.otm</field>
+        <field name="model">project.task</field>
+        <field name="arch" type="xml"><pivot string="Developer workload"><field name="user_ids" type="row"/><field name="otm_dev_status" type="col"/></pivot></field>
+    </record>
+
+    <!-- ================= report actions ================= -->
+    <record id="action_rep_leads" model="ir.actions.act_window">
+        <field name="name">Sales Report: Leads</field><field name="res_model">otm.lead</field>
+        <field name="view_mode">pivot,graph,list</field><field name="search_view_id" ref="view_otm_lead_report_search"/>
+        <field name="context">{'search_default_g_team': 1, 'active_test': False}</field>
+    </record>
+    <record id="action_rep_estimates" model="ir.actions.act_window">
+        <field name="name">Sales Report: Estimates</field><field name="res_model">otm.estimate</field>
+        <field name="view_mode">pivot,graph,list</field><field name="search_view_id" ref="view_otm_estimate_report_search"/>
+    </record>
+    <record id="action_rep_commission" model="ir.actions.act_window">
+        <field name="name">Commission Report</field><field name="res_model">otm.sales.commission</field>
+        <field name="view_mode">pivot,graph,list</field><field name="search_view_id" ref="view_otm_commission_report_search"/>
+    </record>
+    <record id="action_rep_projects" model="ir.actions.act_window">
+        <field name="name">Project Report</field><field name="res_model">project.project</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="domain">[('otm_is_lifecycle', '=', True)]</field>
+    </record>
+    <record id="action_rep_delayed" model="ir.actions.act_window">
+        <field name="name">Delayed Stages</field><field name="res_model">otm.project.stage.line</field>
+        <field name="view_mode">list,form</field><field name="search_view_id" ref="view_otm_stage_line_report_search"/>
+        <field name="context">{'search_default_f_delayed': 1}</field>
+    </record>
+    <record id="action_rep_workload" model="ir.actions.act_window">
+        <field name="name">Developer Workload</field><field name="res_model">project.task</field>
+        <field name="view_mode">pivot,list</field>
+        <field name="domain">[('otm_lifecycle', '=', True)]</field>
+    </record>
+    <record id="action_rep_qc" model="ir.actions.act_window">
+        <field name="name">QC Failures</field><field name="res_model">otm.qc</field>
+        <field name="view_mode">graph,list</field>
+    </record>
+    <record id="action_rep_rework" model="ir.actions.act_window">
+        <field name="name">Rework (QC Issues)</field><field name="res_model">otm.qc.issue</field>
+        <field name="view_mode">pivot,list</field>
+    </record>
+    <record id="action_rep_payments" model="ir.actions.act_window">
+        <field name="name">Finance Report</field><field name="res_model">otm.deal.payment</field>
+        <field name="view_mode">pivot,graph,list</field><field name="search_view_id" ref="view_otm_payment_report_search"/>
+    </record>
+    <record id="action_rep_services" model="ir.actions.act_window">
+        <field name="name">Service Report</field><field name="res_model">otm.client.service</field>
+        <field name="view_mode">pivot,graph,list</field><field name="search_view_id" ref="view_otm_cservice_report_search"/>
+    </record>
+
+    <!-- ================= menus ================= -->
+    <menuitem id="menu_otm_reports" name="Reports" parent="menu_otm_root" sequence="45"
+              groups="group_sales_executive,group_finance,group_project_head"/>
+    <menuitem id="menu_rep_leads" name="Leads" parent="menu_otm_reports" action="action_rep_leads" sequence="10"
+              groups="group_sales_executive"/>
+    <menuitem id="menu_rep_estimates" name="Estimates" parent="menu_otm_reports" action="action_rep_estimates" sequence="20"
+              groups="group_sales_executive"/>
+    <menuitem id="menu_rep_commission" name="Commission" parent="menu_otm_reports" action="action_rep_commission" sequence="30"
+              groups="group_sales_head,group_finance"/>
+    <menuitem id="menu_rep_payments" name="Finance" parent="menu_otm_reports" action="action_rep_payments" sequence="40"
+              groups="group_sales_executive,group_finance"/>
+    <menuitem id="menu_rep_projects" name="Projects" parent="menu_otm_reports" action="action_rep_projects" sequence="50"
+              groups="group_project_head"/>
+    <menuitem id="menu_rep_delayed" name="Delayed Stages" parent="menu_otm_reports" action="action_rep_delayed" sequence="60"
+              groups="group_project_head"/>
+    <menuitem id="menu_rep_workload" name="Developer Workload" parent="menu_otm_reports" action="action_rep_workload" sequence="70"
+              groups="group_project_head"/>
+    <menuitem id="menu_rep_qc" name="QC Failures" parent="menu_otm_reports" action="action_rep_qc" sequence="80"
+              groups="group_qc,group_project_head"/>
+    <menuitem id="menu_rep_rework" name="Rework" parent="menu_otm_reports" action="action_rep_rework" sequence="90"
+              groups="group_qc,group_project_head"/>
+    <menuitem id="menu_rep_services" name="Services" parent="menu_otm_reports" action="action_rep_services" sequence="100"
+              groups="group_sales_executive,group_project_head,group_finance"/>
+</odoo>

@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="sales_project_lifecycle.Dashboard">
+        <div class="o_otm_dashboard">
+            <div class="o_otm_header">
+                <h2 t-esc="state.data ? state.data.title : 'Dashboard'"/>
+                <div t-if="state.data and state.data.role === 'admin'" class="o_otm_filters">
+                    <select name="team_id" class="form-select form-select-sm" t-on-change="onFilter">
+                        <option value="">All teams</option>
+                        <t t-foreach="state.data.options.teams" t-as="o" t-key="o.id">
+                            <option t-att-value="o.id" t-att-selected="state.filters.team_id == o.id" t-esc="o.name"/>
+                        </t>
+                    </select>
+                    <select name="head_id" class="form-select form-select-sm" t-on-change="onFilter">
+                        <option value="">All Sales Heads</option>
+                        <t t-foreach="state.data.options.heads" t-as="o" t-key="o.id">
+                            <option t-att-value="o.id" t-att-selected="state.filters.head_id == o.id" t-esc="o.name"/>
+                        </t>
+                    </select>
+                    <select name="executive_id" class="form-select form-select-sm" t-on-change="onFilter">
+                        <option value="">All Executives</option>
+                        <t t-foreach="state.data.options.executives" t-as="o" t-key="o.id">
+                            <option t-att-value="o.id" t-att-selected="state.filters.executive_id == o.id" t-esc="o.name"/>
+                        </t>
+                    </select>
+                    <select name="project_head_id" class="form-select form-select-sm" t-on-change="onFilter">
+                        <option value="">All Project Heads</option>
+                        <t t-foreach="state.data.options.project_heads" t-as="o" t-key="o.id">
+                            <option t-att-value="o.id" t-att-selected="state.filters.project_head_id == o.id" t-esc="o.name"/>
+                        </t>
+                    </select>
+                    <input type="date" name="date_from" class="form-control form-control-sm" t-att-value="state.filters.date_from" t-on-change="onFilter"/>
+                    <input type="date" name="date_to" class="form-control form-control-sm" t-att-value="state.filters.date_to" t-on-change="onFilter"/>
+                    <button class="btn btn-sm btn-light" t-on-click="resetFilters">Reset</button>
+                </div>
+                <div t-elif="state.data and state.data.role === 'head'" class="o_otm_filters">
+                    <input type="date" name="date_from" class="form-control form-control-sm" t-att-value="state.filters.date_from" t-on-change="onFilter"/>
+                    <input type="date" name="date_to" class="form-control form-control-sm" t-att-value="state.filters.date_to" t-on-change="onFilter"/>
+                </div>
+            </div>
+            <div t-if="state.error" class="alert alert-warning" t-esc="state.error"/>
+            <div t-if="state.loading and !state.data" class="o_otm_loading">Loading…</div>
+            <t t-if="state.data">
+                <div class="o_otm_kpis">
+                    <t t-foreach="state.data.kpis" t-as="kpi" t-key="kpi.key">
+                        <div t-attf-class="o_otm_kpi o_otm_tone_{{kpi.tone}}" t-on-click="() => this.openKpi(kpi)" role="button">
+                            <div class="o_otm_kpi_value" t-esc="formatValue(kpi)"/>
+                            <div class="o_otm_kpi_label" t-esc="kpi.label"/>
+                        </div>
+                    </t>
+                </div>
+                <div class="o_otm_panels">
+                    <t t-foreach="state.data.charts" t-as="chart" t-key="chart_index">
+                        <div class="o_otm_card" t-if="chart.rows.length">
+                            <h5 t-esc="chart.title"/>
+                            <t t-foreach="chart.rows" t-as="row" t-key="row.key">
+                                <div class="o_otm_bar_row">
+                                    <span class="o_otm_bar_label" t-esc="row.label"/>
+                                    <div class="o_otm_bar"><div class="o_otm_bar_fill" t-attf-style="width: {{barWidth(chart, row)}}%"/></div>
+                                    <span class="o_otm_bar_value" t-esc="row.value"/>
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+                    <t t-foreach="state.data.tables" t-as="table" t-key="table_index">
+                        <div class="o_otm_card">
+                            <h5 t-esc="table.title"/>
+                            <table class="table table-sm o_otm_table">
+                                <thead><tr><t t-foreach="table.columns" t-as="col" t-key="col_index"><th t-esc="col"/></t></tr></thead>
+                                <tbody>
+                                    <t t-foreach="table.rows" t-as="row" t-key="row_index">
+                                        <tr><t t-foreach="table.columns" t-as="col" t-key="col_index"><td t-esc="cell(table, row, col_index)"/></t></tr>
+                                    </t>
+                                    <tr t-if="!table.rows.length"><td t-att-colspan="table.columns.length" class="text-muted">No data</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </t>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="sales_project_lifecycle.ProjectBoard">
+        <div class="o_otm_dashboard">
+            <div class="o_otm_header"><h2>Project Board</h2></div>
+            <div t-if="state.error" class="alert alert-warning" t-esc="state.error"/>
+            <div t-if="state.loading" class="o_otm_loading">Loading…</div>
+            <div class="o_otm_board">
+                <t t-foreach="state.columns" t-as="col" t-key="col.key">
+                    <div class="o_otm_board_col">
+                        <div class="o_otm_board_head"><span t-esc="col.label"/><span class="badge text-bg-light" t-esc="col.count"/></div>
+                        <t t-foreach="col.cards" t-as="card" t-key="card.id">
+                            <div class="o_otm_card o_otm_project_card" t-on-click="() => this.openProject(card)" role="button">
+                                <div class="fw-bold" t-esc="card.name"/>
+                                <div class="text-muted small" t-esc="card.customer"/>
+                                <div class="small"><span class="text-muted">Team:</span> <t t-esc="card.team"/> · <t t-esc="card.salesperson"/></div>
+                                <div class="small"><span class="text-muted">Head:</span> <t t-esc="card.project_head"/></div>
+                                <div class="small" t-if="card.developers"><span class="text-muted">Dev:</span> <t t-esc="card.developers"/></div>
+                                <div class="small" t-if="card.deadline"><span class="text-muted">Deadline:</span> <t t-esc="card.deadline"/></div>
+                                <div class="progress o_otm_progress"><div class="progress-bar" t-attf-style="width: {{card.progress}}%"/></div>
+                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                    <span t-if="card.payment" class="badge text-bg-info" t-esc="card.payment"/>
+                                    <span t-if="card.qc" class="badge text-bg-secondary" t-esc="card.qc"/>
+                                    <span t-if="card.delay_days > 0" class="badge text-bg-danger"><t t-esc="card.delay_days"/>d late</span>
+                                    <span t-if="card.state === 'on_hold'" class="badge text-bg-warning">On hold</span>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="sales_project_lifecycle.Customer360">
+        <div class="o_otm_dashboard">
+            <div class="o_otm_header">
+                <h2>Customer 360</h2>
+                <div class="o_otm_filters o_otm_search">
+                    <input class="form-control form-control-sm" placeholder="Search customer…" t-att-value="state.term" t-on-input="onSearch"/>
+                    <div class="o_otm_results" t-if="state.results.length">
+                        <t t-foreach="state.results" t-as="p" t-key="p.id">
+                            <div class="o_otm_result" t-on-click="() => this.pick(p)" t-esc="p.name"/>
+                        </t>
+                    </div>
+                </div>
+            </div>
+            <div t-if="state.error" class="alert alert-warning" t-esc="state.error"/>
+            <div t-if="!state.data and !state.loading" class="o_otm_loading">Search for a customer to see the full picture.</div>
+            <t t-if="state.data">
+                <div class="o_otm_card o_otm_customer_head">
+                    <h3 t-esc="state.data.partner.name"/>
+                    <div class="text-muted" t-esc="[state.data.partner.email, state.data.partner.phone, state.data.partner.city, state.data.partner.country].filter(x => x).join(' · ')"/>
+                </div>
+                <div class="o_otm_panels o_otm_360">
+                    <div class="o_otm_card"><h5>Sales</h5>
+                        <t t-if="state.data.sales.restricted"><p class="text-muted">Not available for your role.</p></t>
+                        <t t-else="">
+                            <div class="o_otm_pairs"><span>Leads</span><b t-esc="state.data.sales.leads"/></div>
+                            <div class="o_otm_pairs"><span>Estimates</span><b t-esc="state.data.sales.estimates"/></div>
+                            <div class="o_otm_pairs"><span>Deals</span><b t-esc="state.data.sales.deals"/></div>
+                            <div class="o_otm_pairs"><span>Deal value</span><b t-esc="money(state.data.sales.deal_value)"/></div>
+                            <div class="o_otm_pairs"><span>Team</span><b t-esc="state.data.sales.teams.join(', ') || '-'"/></div>
+                            <div class="o_otm_pairs"><span>Sales Head</span><b t-esc="state.data.sales.heads.join(', ') || '-'"/></div>
+                            <div class="o_otm_pairs"><span>Executive</span><b t-esc="state.data.sales.executives.join(', ') || '-'"/></div>
+                        </t>
+                    </div>
+                    <div class="o_otm_card"><h5>Projects</h5>
+                        <t t-if="state.data.projects.restricted"><p class="text-muted">Not available for your role.</p></t>
+                        <t t-else="">
+                            <div class="o_otm_pairs"><span>Active</span><b t-esc="state.data.projects.active"/></div>
+                            <div class="o_otm_pairs"><span>Completed</span><b t-esc="state.data.projects.completed"/></div>
+                            <div class="o_otm_pairs"><span>Delayed</span><b t-esc="state.data.projects.delayed"/></div>
+                            <t t-foreach="state.data.projects.items" t-as="p" t-key="p.id">
+                                <div class="small"><t t-esc="p.name"/> · <t t-esc="p.state"/> · <t t-esc="p.progress"/>%</div>
+                            </t>
+                        </t>
+                    </div>
+                    <div class="o_otm_card"><h5>Payments</h5>
+                        <t t-if="state.data.payments.restricted"><p class="text-muted">Not available for your role.</p></t>
+                        <t t-else="">
+                            <div class="o_otm_pairs"><span>Total</span><b t-esc="money(state.data.payments.total)"/></div>
+                            <div class="o_otm_pairs"><span>Received</span><b t-esc="money(state.data.payments.received)"/></div>
+                            <div class="o_otm_pairs"><span>Outstanding</span><b t-esc="money(state.data.payments.outstanding)"/></div>
+                        </t>
+                    </div>
+                    <div class="o_otm_card"><h5>Services</h5>
+                        <t t-if="state.data.services.restricted"><p class="text-muted">Not available for your role.</p></t>
+                        <t t-else="">
+                            <div class="o_otm_pairs"><span>Active</span><b t-esc="state.data.services.active"/></div>
+                            <div class="o_otm_pairs"><span>Expiring</span><b t-esc="state.data.services.expiring"/></div>
+                            <div class="o_otm_pairs"><span>Expired</span><b t-esc="state.data.services.expired"/></div>
+                            <t t-foreach="state.data.services.items" t-as="s" t-key="s.id">
+                                <div class="small"><t t-esc="s.name"/> · <t t-esc="s.expiry or '-'"/> · <t t-esc="s.status"/></div>
+                            </t>
+                        </t>
+                    </div>
+                    <div class="o_otm_card"><h5>Servers</h5>
+                        <t t-if="state.data.servers.restricted"><p class="text-muted">Not available for your role.</p></t>
+                        <t t-else="">
+                            <div class="o_otm_pairs"><span>Active</span><b t-esc="state.data.servers.active"/></div>
+                            <t t-foreach="state.data.servers.items" t-as="s" t-key="s.id">
+                                <div class="small"><t t-esc="s.name"/> · hosting <t t-esc="s.hosting_expiry or '-'"/> · SSL <t t-esc="s.ssl_expiry or '-'"/></div>
+                            </t>
+                        </t>
+                    </div>
+                    <div class="o_otm_card"><h5>Integrations</h5>
+                        <t t-if="state.data.integrations.restricted"><p class="text-muted">Not available for your role.</p></t>
+                        <t t-else="">
+                            <div class="o_otm_pairs"><span>Active</span><b t-esc="state.data.integrations.active"/></div>
+                            <t t-foreach="state.data.integrations.items" t-as="i" t-key="i.id">
+                                <div class="small"><t t-esc="i.name"/> · expiry <t t-esc="i.expiry or '-'"/> · renewal <t t-esc="i.renewal or '-'"/></div>
+                            </t>
+                        </t>
+                    </div>
+                    <div class="o_otm_card"><h5>Reviews</h5>
+                        <t t-if="state.data.reviews.restricted"><p class="text-muted">Not available for your role.</p></t>
+                        <t t-else="">
+                            <div class="o_otm_pairs"><span>Rating</span><b><t t-esc="state.data.reviews.rating"/> <span class="o_otm_stars" t-esc="stars(state.data.reviews.rating)"/></b></div>
+                            <t t-foreach="state.data.reviews.items" t-as="r" t-key="r.id">
+                                <div class="small fst-italic" t-if="r.comments">“<t t-esc="r.comments"/>”</div>
+                            </t>
+                        </t>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="sales_project_lifecycle.StageTracker">
+        <div class="o_otm_tracker" t-if="steps.length">
+            <div class="o_otm_tracker_head" t-on-click="toggle">
+                <div class="o_otm_tracker_title">
+                    <i class="fa fa-tasks me-2"/>
+                    <strong>Lifecycle Checklist</strong>
+                    <span class="o_otm_tracker_count" t-esc="doneCount + ' / ' + steps.length + ' completed'"/>
+                    <t t-if="nextStep">
+                        <span t-attf-class="o_otm_tracker_next o_otm_next_{{nextStep.status}}">
+                            <t t-if="nextStep.status === 'blocked'">Blocked at: </t>
+                            <t t-else="">Next: </t>
+                            <b t-esc="nextStep.label"/>
+                        </span>
+                    </t>
+                    <span t-else="" class="o_otm_tracker_next o_otm_next_completed"><i class="fa fa-trophy me-1"/>All done</span>
+                </div>
+                <div class="o_otm_tracker_bar"><div class="o_otm_tracker_fill" t-attf-style="width: {{percent}}%"/></div>
+                <span class="o_otm_tracker_pct" t-esc="percent + '%'"/>
+                <i t-attf-class="fa fa-chevron-{{state.open ? 'up' : 'down'}} ms-2 text-muted"/>
+            </div>
+            <div class="o_otm_checklist" t-if="state.open">
+                <t t-foreach="steps" t-as="step" t-key="step.key">
+                    <div t-attf-class="o_otm_check o_otm_step_{{step.status}}">
+                        <span class="o_otm_check_icon">
+                            <i t-if="step.status === 'completed'" class="fa fa-check"/>
+                            <i t-elif="step.status === 'blocked'" class="fa fa-ban"/>
+                            <i t-elif="step.status === 'current'" class="fa fa-hourglass-half"/>
+                            <span t-else="" t-esc="step_index + 1"/>
+                        </span>
+                        <span class="o_otm_check_body">
+                            <span class="o_otm_check_label" t-esc="step.label"/>
+                            <span class="o_otm_check_detail" t-esc="step.detail"/>
+                        </span>
+                        <span class="o_otm_check_badge">
+                            <t t-if="step.status === 'completed'">Done</t>
+                            <t t-elif="step.status === 'current'">In progress</t>
+                            <t t-elif="step.status === 'blocked'">Blocked</t>
+                            <t t-else="">Pending</t>
+                        </span>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,669 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Privileges (one per functional area) -->
+    <record id="privilege_sales" model="res.groups.privilege">
+        <field name="name">Sales Lifecycle</field>
+        <field name="sequence">30</field>
+        <field name="category_id" ref="base.module_category_sales"/>
+    </record>
+    <record id="privilege_project" model="res.groups.privilege">
+        <field name="name">Project Lifecycle</field>
+        <field name="sequence">31</field>
+        <field name="category_id" ref="base.module_category_services"/>
+    </record>
+    <record id="privilege_finance" model="res.groups.privilege">
+        <field name="name">Lifecycle Finance</field>
+        <field name="sequence">32</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+    </record>
+
+    <!-- Sales -->
+    <record id="group_sales_executive" model="res.groups">
+        <field name="name">Sales Executive</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="privilege_sales"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="group_sales_head" model="res.groups">
+        <field name="name">Sales Head</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="privilege_sales"/>
+        <field name="implied_ids" eval="[(4, ref('group_sales_executive'))]"/>
+    </record>
+
+    <!-- Project -->
+    <record id="group_developer" model="res.groups">
+        <field name="name">Developer</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="privilege_project"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('project.group_project_user'))]"/>
+    </record>
+    <record id="group_qc" model="res.groups">
+        <field name="name">QC</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="privilege_project"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('project.group_project_user'))]"/>
+    </record>
+    <record id="group_project_head" model="res.groups">
+        <field name="name">Project Head</field>
+        <field name="sequence">30</field>
+        <field name="privilege_id" ref="privilege_project"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('project.group_project_manager'))]"/>
+    </record>
+
+    <!-- Finance -->
+    <record id="group_finance" model="res.groups">
+        <field name="name">Finance</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="privilege_finance"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="group_finance_manager" model="res.groups">
+        <field name="name">Finance Manager</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="privilege_finance"/>
+        <field name="implied_ids" eval="[(4, ref('group_finance'))]"/>
+    </record>
+
+    <!-- Administrator -->
+    <record id="group_lifecycle_admin" model="res.groups">
+        <field name="name">Lifecycle Administrator</field>
+        <field name="sequence">100</field>
+        <field name="privilege_id" ref="privilege_sales"/>
+        <field name="implied_ids" eval="[(4, ref('group_sales_head')), (4, ref('group_project_head')), (4, ref('group_qc')), (4, ref('group_finance_manager'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!-- ============================================================
+         RECORD RULES
+         Written with relational domains on the *current user id* (not on a
+         list evaluated from the user), because Odoo caches the evaluated rule
+         domain per user: a membership list baked into the domain would go
+         stale when a team is edited.
+         ============================================================ -->
+    <data noupdate="1">
+        <!-- Sales Team -->
+        <record id="rule_team_executive" model="ir.rule">
+            <field name="name">Sales Team: members see their own team</field>
+            <field name="model_id" ref="model_otm_sales_team"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">['|', ('head_id', '=', user.id), ('member_ids', 'in', [user.id])]</field>
+        </record>
+        <record id="rule_team_admin" model="ir.rule">
+            <field name="name">Sales Team: administrator sees all</field>
+            <field name="model_id" ref="model_otm_sales_team"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <!-- Lead -->
+        <record id="rule_lead_executive" model="ir.rule">
+            <field name="name">Lead: executive sees own leads</field>
+            <field name="model_id" ref="model_otm_lead"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('salesperson_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_lead_head" model="ir.rule">
+            <field name="name">Lead: Sales Head sees own team leads</field>
+            <field name="model_id" ref="model_otm_lead"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_lead_admin" model="ir.rule">
+            <field name="name">Lead: administrator sees all</field>
+            <field name="model_id" ref="model_otm_lead"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <!-- Lead service line -->
+        <record id="rule_line_executive" model="ir.rule">
+            <field name="name">Lead Service Line: executive sees own</field>
+            <field name="model_id" ref="model_otm_lead_service_line"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('lead_id.salesperson_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_line_head" model="ir.rule">
+            <field name="name">Lead Service Line: Sales Head sees own team</field>
+            <field name="model_id" ref="model_otm_lead_service_line"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('lead_id.sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_line_admin" model="ir.rule">
+            <field name="name">Lead Service Line: administrator sees all</field>
+            <field name="model_id" ref="model_otm_lead_service_line"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <!-- Transition history (read-only audit) -->
+        <record id="rule_log_executive" model="ir.rule">
+            <field name="name">Transition History: executive sees own records</field>
+            <field name="model_id" ref="model_otm_transition_log"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('owner_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_log_head" model="ir.rule">
+            <field name="name">Transition History: Sales Head sees own team</field>
+            <field name="model_id" ref="model_otm_transition_log"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_log_admin" model="ir.rule">
+            <field name="name">Transition History: administrator sees all</field>
+            <field name="model_id" ref="model_otm_transition_log"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_demo_executive" model="ir.rule">
+            <field name="name">Demo: executive sees own</field>
+            <field name="model_id" ref="model_otm_demo"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('salesperson_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_demo_head" model="ir.rule">
+            <field name="name">Demo: Sales Head sees own team</field>
+            <field name="model_id" ref="model_otm_demo"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_demo_admin" model="ir.rule">
+            <field name="name">Demo: administrator sees all</field>
+            <field name="model_id" ref="model_otm_demo"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_estimate_executive" model="ir.rule">
+            <field name="name">Estimate: executive sees own</field>
+            <field name="model_id" ref="model_otm_estimate"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('salesperson_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_estimate_head" model="ir.rule">
+            <field name="name">Estimate: Sales Head sees own team</field>
+            <field name="model_id" ref="model_otm_estimate"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_estimate_admin" model="ir.rule">
+            <field name="name">Estimate: administrator sees all</field>
+            <field name="model_id" ref="model_otm_estimate"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_estrev_executive" model="ir.rule">
+            <field name="name">Estimate Revision: executive sees own</field>
+            <field name="model_id" ref="model_otm_estimate_revision"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('salesperson_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_estrev_head" model="ir.rule">
+            <field name="name">Estimate Revision: Sales Head sees own team</field>
+            <field name="model_id" ref="model_otm_estimate_revision"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_estrev_admin" model="ir.rule">
+            <field name="name">Estimate Revision: administrator sees all</field>
+            <field name="model_id" ref="model_otm_estimate_revision"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_estline_executive" model="ir.rule">
+            <field name="name">Estimate Line: executive sees own</field>
+            <field name="model_id" ref="model_otm_estimate_line"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('estimate_id.salesperson_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_estline_head" model="ir.rule">
+            <field name="name">Estimate Line: Sales Head sees own team</field>
+            <field name="model_id" ref="model_otm_estimate_line"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('estimate_id.sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_estline_admin" model="ir.rule">
+            <field name="name">Estimate Line: administrator sees all</field>
+            <field name="model_id" ref="model_otm_estimate_line"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_estcust_executive" model="ir.rule">
+            <field name="name">Estimate Customization: executive sees own</field>
+            <field name="model_id" ref="model_otm_estimate_customization"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('estimate_id.salesperson_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_estcust_head" model="ir.rule">
+            <field name="name">Estimate Customization: Sales Head sees own team</field>
+            <field name="model_id" ref="model_otm_estimate_customization"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('estimate_id.sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_estcust_admin" model="ir.rule">
+            <field name="name">Estimate Customization: administrator sees all</field>
+            <field name="model_id" ref="model_otm_estimate_customization"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_deal_executive" model="ir.rule">
+            <field name="name">Deal: executive</field>
+            <field name="model_id" ref="model_otm_deal"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('salesperson_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_deal_head" model="ir.rule">
+            <field name="name">Deal: head</field>
+            <field name="model_id" ref="model_otm_deal"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_deal_finance" model="ir.rule">
+            <field name="name">Deal: finance</field>
+            <field name="model_id" ref="model_otm_deal"/>
+            <field name="groups" eval="[(4, ref('group_finance'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_deal_admin" model="ir.rule">
+            <field name="name">Deal: admin</field>
+            <field name="model_id" ref="model_otm_deal"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_dealline_executive" model="ir.rule">
+            <field name="name">Deal Line: executive</field>
+            <field name="model_id" ref="model_otm_deal_line"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('deal_id.salesperson_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_dealline_head" model="ir.rule">
+            <field name="name">Deal Line: head</field>
+            <field name="model_id" ref="model_otm_deal_line"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('deal_id.sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_dealline_finance" model="ir.rule">
+            <field name="name">Deal Line: finance</field>
+            <field name="model_id" ref="model_otm_deal_line"/>
+            <field name="groups" eval="[(4, ref('group_finance'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_dealline_admin" model="ir.rule">
+            <field name="name">Deal Line: admin</field>
+            <field name="model_id" ref="model_otm_deal_line"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_comm_head" model="ir.rule">
+            <field name="name">Commission: head</field>
+            <field name="model_id" ref="model_otm_sales_commission"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_comm_finance" model="ir.rule">
+            <field name="name">Commission: finance</field>
+            <field name="model_id" ref="model_otm_sales_commission"/>
+            <field name="groups" eval="[(4, ref('group_finance'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_comm_admin" model="ir.rule">
+            <field name="name">Commission: admin</field>
+            <field name="model_id" ref="model_otm_sales_commission"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_wallet_head" model="ir.rule">
+            <field name="name">Wallet: head</field>
+            <field name="model_id" ref="model_otm_sales_wallet"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('sales_head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_wallet_finance" model="ir.rule">
+            <field name="name">Wallet: finance</field>
+            <field name="model_id" ref="model_otm_sales_wallet"/>
+            <field name="groups" eval="[(4, ref('group_finance'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_wallet_admin" model="ir.rule">
+            <field name="name">Wallet: admin</field>
+            <field name="model_id" ref="model_otm_sales_wallet"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_wtxn_head" model="ir.rule">
+            <field name="name">Wallet Txn: head</field>
+            <field name="model_id" ref="model_otm_sales_wallet_transaction"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('sales_head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_wtxn_finance" model="ir.rule">
+            <field name="name">Wallet Txn: finance</field>
+            <field name="model_id" ref="model_otm_sales_wallet_transaction"/>
+            <field name="groups" eval="[(4, ref('group_finance'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_wtxn_admin" model="ir.rule">
+            <field name="name">Wallet Txn: admin</field>
+            <field name="model_id" ref="model_otm_sales_wallet_transaction"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_agr_executive" model="ir.rule">
+            <field name="name">Agreement: executive</field>
+            <field name="model_id" ref="model_otm_customer_agreement"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('salesperson_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_agr_head" model="ir.rule">
+            <field name="name">Agreement: head</field>
+            <field name="model_id" ref="model_otm_customer_agreement"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_agr_finance" model="ir.rule">
+            <field name="name">Agreement: finance</field>
+            <field name="model_id" ref="model_otm_customer_agreement"/>
+            <field name="groups" eval="[(4, ref('group_finance'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_agr_admin" model="ir.rule">
+            <field name="name">Agreement: admin</field>
+            <field name="model_id" ref="model_otm_customer_agreement"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_pay_executive" model="ir.rule">
+            <field name="name">Payment: executive</field>
+            <field name="model_id" ref="model_otm_deal_payment"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('salesperson_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_pay_head" model="ir.rule">
+            <field name="name">Payment: head</field>
+            <field name="model_id" ref="model_otm_deal_payment"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_pay_finance" model="ir.rule">
+            <field name="name">Payment: finance</field>
+            <field name="model_id" ref="model_otm_deal_payment"/>
+            <field name="groups" eval="[(4, ref('group_finance'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_pay_admin" model="ir.rule">
+            <field name="name">Payment: admin</field>
+            <field name="model_id" ref="model_otm_deal_payment"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_proj_executive" model="ir.rule">
+            <field name="name">Lifecycle Project: executive</field>
+            <field name="model_id" ref="project.model_project_project"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('otm_salesperson_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_proj_head" model="ir.rule">
+            <field name="name">Lifecycle Project: head</field>
+            <field name="model_id" ref="project.model_project_project"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('otm_sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_proj_finance" model="ir.rule">
+            <field name="name">Lifecycle Project: finance</field>
+            <field name="model_id" ref="project.model_project_project"/>
+            <field name="groups" eval="[(4, ref('group_finance'))]"/>
+            <field name="domain_force">[('otm_is_lifecycle', '=', True)]</field>
+        </record>
+        <record id="rule_proj_team" model="ir.rule">
+            <field name="name">Lifecycle Project: team</field>
+            <field name="model_id" ref="project.model_project_project"/>
+            <field name="groups" eval="[(4, ref('project.group_project_user'))]"/>
+            <field name="domain_force">['|', '|', '|', ('otm_developer_ids', 'in', user.id), ('otm_qc_user_id', '=', user.id), ('otm_deploy_user_id', '=', user.id), ('otm_trainer_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_stage_executive" model="ir.rule">
+            <field name="name">Project Stage: executive</field>
+            <field name="model_id" ref="model_otm_project_stage_line"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('project_id.otm_salesperson_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_stage_head" model="ir.rule">
+            <field name="name">Project Stage: head</field>
+            <field name="model_id" ref="model_otm_project_stage_line"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('project_id.otm_sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_stage_finance" model="ir.rule">
+            <field name="name">Project Stage: finance</field>
+            <field name="model_id" ref="model_otm_project_stage_line"/>
+            <field name="groups" eval="[(4, ref('group_finance'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_stage_team" model="ir.rule">
+            <field name="name">Project Stage: team</field>
+            <field name="model_id" ref="model_otm_project_stage_line"/>
+            <field name="groups" eval="[(4, ref('project.group_project_user'))]"/>
+            <field name="domain_force">['|', '|', '|', ('project_id.otm_developer_ids', 'in', user.id), ('project_id.otm_qc_user_id', '=', user.id), ('project_id.otm_deploy_user_id', '=', user.id), ('project_id.otm_trainer_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_stage_projecthead" model="ir.rule">
+            <field name="name">Project Stage: projecthead</field>
+            <field name="model_id" ref="model_otm_project_stage_line"/>
+            <field name="groups" eval="[(4, ref('group_project_head'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_stage_admin" model="ir.rule">
+            <field name="name">Project Stage: admin</field>
+            <field name="model_id" ref="model_otm_project_stage_line"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_log_projecthead" model="ir.rule">
+            <field name="name">Transition History: projecthead</field>
+            <field name="model_id" ref="model_otm_transition_log"/>
+            <field name="groups" eval="[(4, ref('group_project_head'))]"/>
+            <field name="domain_force">[('res_model', 'in', ['project.project', 'project.task', 'otm.project.stage.line', 'otm.qc', 'otm.qc.issue', 'otm.deployment', 'otm.training'])]</field>
+        </record>
+        <record id="rule_qc_qc" model="ir.rule">
+            <field name="name">QC: qc</field>
+            <field name="model_id" ref="model_otm_qc"/>
+            <field name="groups" eval="[(4, ref('group_qc'))]"/>
+            <field name="domain_force">[('project_id.otm_qc_user_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_issue_qc" model="ir.rule">
+            <field name="name">QC Issue: qc</field>
+            <field name="model_id" ref="model_otm_qc_issue"/>
+            <field name="groups" eval="[(4, ref('group_qc'))]"/>
+            <field name="domain_force">[('project_id.otm_qc_user_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_issue_dev" model="ir.rule">
+            <field name="name">QC Issue: dev</field>
+            <field name="model_id" ref="model_otm_qc_issue"/>
+            <field name="groups" eval="[(4, ref('group_developer'))]"/>
+            <field name="domain_force">[('assigned_developer_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_deploy_user" model="ir.rule">
+            <field name="name">Deployment: user</field>
+            <field name="model_id" ref="model_otm_deployment"/>
+            <field name="groups" eval="[(4, ref('project.group_project_user'))]"/>
+            <field name="domain_force">[('project_id.otm_deploy_user_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_server_user" model="ir.rule">
+            <field name="name">Client Server: user</field>
+            <field name="model_id" ref="model_otm_client_server"/>
+            <field name="groups" eval="[(4, ref('project.group_project_user'))]"/>
+            <field name="domain_force">[('deployment_ids.project_id.otm_deploy_user_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_qc_head" model="ir.rule">
+            <field name="name">QC: head</field>
+            <field name="model_id" ref="model_otm_qc"/>
+            <field name="groups" eval="[(4, ref('group_project_head'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_qc_admin" model="ir.rule">
+            <field name="name">QC: admin</field>
+            <field name="model_id" ref="model_otm_qc"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_issue_head" model="ir.rule">
+            <field name="name">QC Issue: head</field>
+            <field name="model_id" ref="model_otm_qc_issue"/>
+            <field name="groups" eval="[(4, ref('group_project_head'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_issue_admin" model="ir.rule">
+            <field name="name">QC Issue: admin</field>
+            <field name="model_id" ref="model_otm_qc_issue"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_deploy_head" model="ir.rule">
+            <field name="name">Deployment: head</field>
+            <field name="model_id" ref="model_otm_deployment"/>
+            <field name="groups" eval="[(4, ref('group_project_head'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_deploy_admin" model="ir.rule">
+            <field name="name">Deployment: admin</field>
+            <field name="model_id" ref="model_otm_deployment"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_server_head" model="ir.rule">
+            <field name="name">Client Server: head</field>
+            <field name="model_id" ref="model_otm_client_server"/>
+            <field name="groups" eval="[(4, ref('group_project_head'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_server_admin" model="ir.rule">
+            <field name="name">Client Server: admin</field>
+            <field name="model_id" ref="model_otm_client_server"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_training_trainer" model="ir.rule">
+            <field name="name">Training: trainer</field>
+            <field name="model_id" ref="model_otm_training"/>
+            <field name="groups" eval="[(4, ref('project.group_project_user'))]"/>
+            <field name="domain_force">[('trainer_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_training_head" model="ir.rule">
+            <field name="name">Training: head</field>
+            <field name="model_id" ref="model_otm_training"/>
+            <field name="groups" eval="[(4, ref('group_project_head'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_training_admin" model="ir.rule">
+            <field name="name">Training: admin</field>
+            <field name="model_id" ref="model_otm_training"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_review_executive" model="ir.rule">
+            <field name="name">Customer Review: executive</field>
+            <field name="model_id" ref="model_otm_customer_review"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('salesperson_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_review_head" model="ir.rule">
+            <field name="name">Customer Review: head</field>
+            <field name="model_id" ref="model_otm_customer_review"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_review_projecthead" model="ir.rule">
+            <field name="name">Customer Review: projecthead</field>
+            <field name="model_id" ref="model_otm_customer_review"/>
+            <field name="groups" eval="[(4, ref('group_project_head'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_review_admin" model="ir.rule">
+            <field name="name">Customer Review: admin</field>
+            <field name="model_id" ref="model_otm_customer_review"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_cservice_exec" model="ir.rule">
+            <field name="name">cservice_exec</field>
+            <field name="model_id" ref="model_otm_client_service"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('responsible_user_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_cservice_head" model="ir.rule">
+            <field name="name">cservice_head</field>
+            <field name="model_id" ref="model_otm_client_service"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_cservice_ph" model="ir.rule">
+            <field name="name">cservice_ph</field>
+            <field name="model_id" ref="model_otm_client_service"/>
+            <field name="groups" eval="[(4, ref('group_project_head'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_cservice_fin" model="ir.rule">
+            <field name="name">cservice_fin</field>
+            <field name="model_id" ref="model_otm_client_service"/>
+            <field name="groups" eval="[(4, ref('group_finance'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_cservice_admin" model="ir.rule">
+            <field name="name">cservice_admin</field>
+            <field name="model_id" ref="model_otm_client_service"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_renewal_exec" model="ir.rule">
+            <field name="name">renewal_exec</field>
+            <field name="model_id" ref="model_otm_service_renewal"/>
+            <field name="groups" eval="[(4, ref('group_sales_executive'))]"/>
+            <field name="domain_force">[('service_id.responsible_user_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_renewal_head" model="ir.rule">
+            <field name="name">renewal_head</field>
+            <field name="model_id" ref="model_otm_service_renewal"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_renewal_ph" model="ir.rule">
+            <field name="name">renewal_ph</field>
+            <field name="model_id" ref="model_otm_service_renewal"/>
+            <field name="groups" eval="[(4, ref('group_project_head'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_renewal_fin" model="ir.rule">
+            <field name="name">renewal_fin</field>
+            <field name="model_id" ref="model_otm_service_renewal"/>
+            <field name="groups" eval="[(4, ref('group_finance'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_renewal_admin" model="ir.rule">
+            <field name="name">renewal_admin</field>
+            <field name="model_id" ref="model_otm_service_renewal"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_integration_user" model="ir.rule">
+            <field name="name">integration_user</field>
+            <field name="model_id" ref="model_otm_client_integration"/>
+            <field name="groups" eval="[(4, ref('project.group_project_user'))]"/>
+            <field name="domain_force">[('responsible_developer_id', '=', user.id)]</field>
+        </record>
+                <record id="rule_integration_head" model="ir.rule">
+            <field name="name">integration_head</field>
+            <field name="model_id" ref="model_otm_client_integration"/>
+            <field name="groups" eval="[(4, ref('group_sales_head'))]"/>
+            <field name="domain_force">[('sales_team_id.head_id', '=', user.id)]</field>
+        </record>
+        <record id="rule_integration_ph" model="ir.rule">
+            <field name="name">integration_ph</field>
+            <field name="model_id" ref="model_otm_client_integration"/>
+            <field name="groups" eval="[(4, ref('group_project_head'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_integration_admin" model="ir.rule">
+            <field name="name">integration_admin</field>
+            <field name="model_id" ref="model_otm_client_integration"/>
+            <field name="groups" eval="[(4, ref('group_lifecycle_admin'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- QC round -->
+    <record id="view_otm_qc_list" model="ir.ui.view">
+        <field name="name">otm.qc.list</field>
+        <field name="model">otm.qc</field>
+        <field name="arch" type="xml">
+            <list decoration-success="status == 'passed'" decoration-danger="status == 'failed'">
+                <field name="name"/><field name="project_id"/><field name="round_number"/>
+                <field name="submitted_date"/><field name="tester_id"/><field name="issue_count"/>
+                <field name="status" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_otm_qc_form" model="ir.ui.view">
+        <field name="name">otm.qc.form</field>
+        <field name="model">otm.qc</field>
+        <field name="arch" type="xml">
+            <form create="0" delete="0">
+                <header>
+                    <button name="action_start" type="object" string="Start Testing" class="btn-primary" invisible="status != 'pending'"/>
+                    <button name="action_pass" type="object" string="Pass" class="btn-primary" invisible="status != 'testing'"/>
+                    <button name="action_fail" type="object" string="Fail" invisible="status != 'testing'"/>
+                    <field name="status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_issues" type="object" class="oe_stat_button" icon="fa-bug">
+                            <field name="issue_count" widget="statinfo" string="Issues"/>
+                        </button>
+                    </div>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group><field name="project_id"/><field name="round_number"/><field name="tester_id"/></group>
+                        <group><field name="submitted_by_id"/><field name="submitted_date"/>
+                               <field name="started_date"/><field name="finished_date"/></group>
+                    </group>
+                    <group string="QC Notes"><field name="notes" nolabel="1"/></group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_otm_qc" model="ir.actions.act_window">
+        <field name="name">QC Rounds</field><field name="res_model">otm.qc</field><field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Issue -->
+    <record id="view_otm_issue_list" model="ir.ui.view">
+        <field name="name">otm.qc.issue.list</field>
+        <field name="model">otm.qc.issue</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="severity == 'critical' and status not in ('passed','rejected')" decoration-muted="status in ('passed','rejected')">
+                <field name="name"/><field name="title"/><field name="project_id"/><field name="severity"/>
+                <field name="assigned_developer_id"/><field name="source" optional="hide"/>
+                <field name="status" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_otm_issue_form" model="ir.ui.view">
+        <field name="name">otm.qc.issue.form</field>
+        <field name="model">otm.qc.issue</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_assign" type="object" string="Assign" class="btn-primary"
+                            groups="sales_project_lifecycle.group_project_head" invisible="status != 'open'"/>
+                    <button name="action_fix" type="object" string="Mark Fixed" class="btn-primary" invisible="status != 'assigned'"/>
+                    <button name="action_pass" type="object" string="Retest Passed" class="btn-primary"
+                            groups="sales_project_lifecycle.group_qc" invisible="status != 'retest'"/>
+                    <button name="action_ask_reason" type="object" string="Retest Failed"
+                            context="{'otm_reason_method': 'action_fail'}"
+                            groups="sales_project_lifecycle.group_qc" invisible="status != 'retest'"/>
+                    <button name="action_ask_reason" type="object" string="Reject Issue"
+                            context="{'otm_reason_method': 'action_reject'}" invisible="status not in ('open','assigned')"/>
+                    <field name="status" widget="statusbar" statusbar_visible="open,assigned,fixed,retest,passed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="title"/><field name="project_id"/><field name="qc_id"/>
+                            <field name="stage_line_id"/><field name="severity"/>
+                        </group>
+                        <group>
+                            <field name="assigned_developer_id"/><field name="source"/>
+                            <field name="created_by_id"/><field name="created_date"/><field name="resolved_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description"><field name="description"/></page>
+                        <page string="Resolution"><field name="resolution_notes"/></page>
+                        <page string="History"><field name="history_ids">
+                            <list><field name="date"/><field name="action"/><field name="from_state"/>
+                                  <field name="to_state"/><field name="user_id"/><field name="reason"/></list>
+                        </field></page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="view_otm_issue_search" model="ir.ui.view">
+        <field name="name">otm.qc.issue.search</field>
+        <field name="model">otm.qc.issue</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="title"/><field name="project_id"/><field name="assigned_developer_id"/>
+                <filter name="unresolved" string="Unresolved" domain="[('status','in',('open','assigned','fixed','retest'))]"/>
+                <group><filter name="g_status" string="Status" context="{'group_by': 'status'}"/>
+                       <filter name="g_sev" string="Severity" context="{'group_by': 'severity'}"/></group>
+            </search>
+        </field>
+    </record>
+    <record id="action_otm_issue" model="ir.actions.act_window">
+        <field name="name">QC Issues</field><field name="res_model">otm.qc.issue</field><field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Client server -->
+    <record id="view_otm_server_list" model="ir.ui.view">
+        <field name="name">otm.client.server.list</field>
+        <field name="model">otm.client.server</field>
+        <field name="arch" type="xml">
+            <list><field name="name"/><field name="customer_id"/><field name="provider"/><field name="domain"/>
+                  <field name="hosting_expiry_date"/><field name="ssl_expiry_date"/><field name="status"/></list>
+        </field>
+    </record>
+    <record id="view_otm_server_form" model="ir.ui.view">
+        <field name="name">otm.client.server.form</field>
+        <field name="model">otm.client.server</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group string="Server">
+                            <field name="customer_id"/><field name="provider"/><field name="server_type"/>
+                            <field name="ip_address"/><field name="hostname"/><field name="domain"/><field name="status"/>
+                        </group>
+                        <group string="Resources">
+                            <field name="operating_system"/><field name="cpu"/><field name="ram"/>
+                            <field name="storage"/><field name="database"/>
+                        </group>
+                        <group string="Hosting">
+                            <field name="hosting_start_date"/><field name="hosting_expiry_date"/>
+                            <field name="ssl_expiry_date"/><field name="backup_schedule"/>
+                        </group>
+                        <group string="Credentials">
+                            <field name="credential_reference" placeholder="Vault entry name (never the password)"/>
+                        </group>
+                    </group>
+                    <field name="notes" placeholder="Notes"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_otm_server" model="ir.actions.act_window">
+        <field name="name">Client Servers</field><field name="res_model">otm.client.server</field><field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Deployment -->
+    <record id="view_otm_deployment_list" model="ir.ui.view">
+        <field name="name">otm.deployment.list</field>
+        <field name="model">otm.deployment</field>
+        <field name="arch" type="xml">
+            <list><field name="name"/><field name="project_id"/><field name="server_id"/><field name="environment"/>
+                  <field name="version"/><field name="deployment_date"/><field name="status" widget="badge"/></list>
+        </field>
+    </record>
+    <record id="view_otm_deployment_form" model="ir.ui.view">
+        <field name="name">otm.deployment.form</field>
+        <field name="model">otm.deployment</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_approve" type="object" string="Approve" class="btn-primary"
+                            groups="sales_project_lifecycle.group_project_head" invisible="status != 'pending'"/>
+                    <button name="action_deploy" type="object" string="Deploy" class="btn-primary" invisible="status != 'approved'"/>
+                    <button name="action_verify" type="object" string="Send to Customer Verification" class="btn-primary" invisible="status != 'deployed'"/>
+                    <button name="action_complete" type="object" string="Verification Completed" class="btn-primary" invisible="status != 'verification'"/>
+                    <button name="action_ask_reason" type="object" string="Customer Reported Issue"
+                            context="{'otm_reason_method': 'action_report_issue'}" invisible="status != 'verification'"/>
+                    <button name="action_ask_reason" type="object" string="Rollback"
+                            context="{'otm_reason_method': 'action_rollback'}" invisible="status not in ('deployed','verification')"/>
+                    <field name="status" widget="statusbar" statusbar_visible="pending,approved,deployed,verification,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="project_id"/><field name="customer_id"/><field name="server_id"/>
+                            <field name="environment"/><field name="version"/>
+                        </group>
+                        <group>
+                            <field name="backup_confirmed"/><field name="rollback_available"/>
+                            <field name="approved_by_id"/><field name="deployed_by_id"/><field name="deployment_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Notes"><field name="deployment_notes"/></page>
+                        <page string="Customer Verification" name="verification">
+                            <group>
+                                <group><field name="verification_date"/><field name="verified_by"/>
+                                       <field name="customer_confirmation"/></group>
+                                <group><field name="verification_notes"/><field name="verification_issues"/></group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_otm_deployment" model="ir.actions.act_window">
+        <field name="name">Deployments</field><field name="res_model">otm.deployment</field><field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Project form additions -->
+    <record id="view_otm_project_form_qc" model="ir.ui.view">
+        <field name="name">otm.project.lifecycle.form.qc</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="view_otm_project_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_submit_qc" type="object" string="Submit for QC" class="btn-primary"
+                        groups="sales_project_lifecycle.group_project_head" invisible="otm_state != 'in_progress'"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_otm_open_qc" type="object" class="oe_stat_button" icon="fa-check-square-o"
+                        groups="sales_project_lifecycle.group_qc,sales_project_lifecycle.group_project_head">
+                    <field name="otm_qc_state" widget="statinfo" string="QC"/>
+                </button>
+                <button name="action_otm_open_issues" type="object" class="oe_stat_button" icon="fa-bug"
+                        groups="sales_project_lifecycle.group_qc,sales_project_lifecycle.group_project_head,sales_project_lifecycle.group_developer">
+                    <field name="otm_open_issue_count" widget="statinfo" string="Open Issues"/>
+                </button>
+                <button name="action_otm_open_deployments" type="object" class="oe_stat_button" icon="fa-cloud-upload"
+                        string="Deployments"
+                        groups="sales_project_lifecycle.group_project_head"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

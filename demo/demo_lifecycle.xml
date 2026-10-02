@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Sample data created through the real workflow, as the real users (Phase 2-10 objects). -->
+    <function model="otm.demo.loader" name="load"/>
+</odoo>
