@@ -22,7 +22,7 @@ class OtmSalesTeam(models.Model):
         'res.company', default=lambda self: self.env.company)
     currency_id = fields.Many2one(
         'res.currency', related='company_id.currency_id', string='Currency')
-    target_amount = fields.Monetary(string='Sales Target', currency_field='currency_id')
+    target_amount = fields.Monetary(string='Monthly Sales Target', currency_field='currency_id')
     sequence = fields.Integer(default=10)
     lead_count = fields.Integer(string='Visible Leads', compute='_compute_lead_count')
 

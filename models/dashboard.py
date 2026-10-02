@@ -127,6 +127,81 @@ class OtmDashboard(models.AbstractModel):
                      'options': self._filter_options(role)})
         return data
 
+    # ------------------------------------------------------------------ comfort feeds (Next.js / OWL)
+    @api.model
+    def get_notifications(self, limit=30):
+        """Recent workflow events on records the user can see (record rules apply to the log),
+        excluding the user's own actions."""
+        if not self._role():
+            return []
+        since = fields.Datetime.now() - timedelta(days=14)
+        logs = self.env['otm.transition.log'].search(
+            [('date', '>=', since), ('user_id', '!=', self.env.user.id)], limit=min(int(limit or 30), 100))
+        return [{
+            'id': l.id, 'date': fields.Datetime.to_string(l.date), 'res_model': l.res_model, 'res_id': l.res_id,
+            'title': l.record_name or '', 'by': l.user_id.name, 'action': l.action,
+            'from': l.from_state or '', 'to': l.to_state or '', 'reason': l.reason or '',
+        } for l in logs]
+
+    @api.model
+    def get_trends(self, months=6):
+        """Monthly leads, won value and received money for the last N months (user's visible data)."""
+        if not self._role():
+            return {'labels': [], 'series': []}
+        months = max(1, min(int(months or 6), 24))
+        today = fields.Date.context_today(self)
+        first = today.replace(day=1)
+        starts = []
+        y, m = first.year, first.month
+        for _i in range(months):
+            starts.append(first.replace(year=y, month=m))
+            m -= 1
+            if m == 0:
+                y, m = y - 1, 12
+        starts.reverse()
+        labels = [d.strftime('%b %y') for d in starts]
+        idx = {d: i for i, d in enumerate(starts)}
+        since = starts[0]
+
+        def bucket(model, date_field, domain, measure):
+            out = [0.0] * months
+            if not self._can_read(model):
+                return out
+            rows = self.env[model]._read_group(
+                domain + [(date_field, '>=', since)], [f'{date_field}:month'], [measure])
+            for month_start, value in rows:
+                d = fields.Date.to_date(month_start)
+                if d in idx:
+                    out[idx[d]] = value or 0
+            return out
+
+        return {'labels': labels, 'currency': self.env.company.currency_id.symbol, 'series': [
+            {'key': 'leads', 'name': _("New leads"), 'kind': 'count',
+             'values': bucket('otm.lead', 'create_date', [], '__count')},
+            {'key': 'won', 'name': _("Won value"), 'kind': 'sum',
+             'values': bucket('otm.deal', 'locked_date', [('status', '=', 'locked')], 'total_amount:sum')},
+            {'key': 'received', 'name': _("Received"), 'kind': 'sum',
+             'values': bucket('otm.deal.payment', 'paid_date', [('status', '=', 'received')], 'amount:sum')},
+        ]}
+
+    @api.model
+    def get_targets(self):
+        """This month's won value against each visible team's monthly target."""
+        if not self._role() or not self._can_read('otm.sales.team'):
+            return []
+        start = fields.Date.context_today(self).replace(day=1)
+        teams = self.env['otm.sales.team'].search([('target_amount', '>', 0)])
+        if not teams:
+            return []
+        Deal = self.env['otm.deal'].sudo()
+        won = {t.id: v for t, v in Deal._read_group(
+            [('status', '=', 'locked'), ('locked_date', '>=', start), ('sales_team_id', 'in', teams.ids)],
+            ['sales_team_id'], ['total_amount:sum'])}
+        return [{
+            'team': t.name, 'target': t.target_amount, 'achieved': won.get(t.id, 0.0),
+            'percent': round(won.get(t.id, 0.0) * 100.0 / t.target_amount, 1),
+        } for t in teams]
+
     @api.model
     def _filter_options(self, role):
         if role != 'admin':

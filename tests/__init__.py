@@ -12,3 +12,4 @@ from . import test_closure
 from . import test_client_services
 from . import test_dashboard
 from . import test_phase11
+from . import test_phase12

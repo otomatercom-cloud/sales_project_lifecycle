@@ -79,6 +79,9 @@ class OtmLead(models.Model):
     priority = fields.Selection([
         ('0', 'Normal'), ('1', 'Low'), ('2', 'High'), ('3', 'Very High'),
     ], default='0')
+    followup_date = fields.Date(string='Follow-up On', tracking=True, index=True,
+                                help="Reminder: the lead shows in 'My work today' from this date until it is won or lost.")
+    followup_note = fields.Char(string='Follow-up Note')
     active = fields.Boolean(default=True)
     lost_reason = fields.Char(tracking=True, readonly=True, copy=False)
     lost_description = fields.Text(readonly=True, copy=False)

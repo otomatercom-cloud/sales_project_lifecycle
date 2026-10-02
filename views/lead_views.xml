@@ -16,6 +16,7 @@
                 <field name="base_total" optional="show"/>
                 <field name="currency_id" column_invisible="1"/>
                 <field name="priority" widget="priority" optional="hide"/>
+                <field name="followup_date" optional="show"/>
             </list>
         </field>
     </record>
@@ -84,6 +85,8 @@
                             <field name="lead_source_id"/>
                             <field name="lead_quality" widget="radio" options="{'horizontal': true}"/>
                             <field name="priority" widget="priority"/>
+                            <field name="followup_date"/>
+                            <field name="followup_note" invisible="not followup_date"/>
                             <field name="expected_budget"/>
                         </group>
                     </group>
